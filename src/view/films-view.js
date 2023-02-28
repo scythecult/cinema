@@ -33,12 +33,12 @@ const createFilmsContainerTemplate = ({
 </section>`;
 
 export default class FilmsView {
-  constructor(filmData = {}) {
-    this.filmData = filmData;
+  constructor(children = {}) {
+    this.children = children;
   }
 
   getTemplate() {
-    return createFilmsContainerTemplate(this.filmData);
+    return createFilmsContainerTemplate(this.children);
   }
 
   getElement() {
