@@ -1,24 +1,29 @@
 import { createElement } from '../render';
+import { formatDate } from '../utils';
 
-const createCommentTemplate = ({
-  emojiSrc = './images/emoji/smile.png',
-  emojiTitle = 'emoji-smile',
-  commentText = 'Interesting setting and a good cast',
-  author = 'Tim Macoveev',
-  commentDate = '2019/12/31 23:59',
-}) => `<li class="film-details__comment">
+const createCommentTemplate = (props) => {
+  const {
+    emotion = './images/emoji/smile.png',
+    comment = 'Interesting setting and a good cast',
+    author = 'Tim Macoveev',
+    date = '2019/12/31 23:59',
+  } = props;
+  const formattedDate = formatDate(date);
+
+  return `<li class="film-details__comment">
 <span class="film-details__comment-emoji">
-  <img src="${emojiSrc}" width="55" height="55" alt="${emojiTitle}">
+  <img src="./images/emoji/${emotion}.png" width="55" height="55" alt="${emotion}">
 </span>
 <div>
-  <p class="film-details__comment-text">${commentText}</p>
+  <p class="film-details__comment-text">${comment}</p>
   <p class="film-details__comment-info">
     <span class="film-details__comment-author">${author}</span>
-    <span class="film-details__comment-day">${commentDate}</span>
+    <span class="film-details__comment-day">${formattedDate}</span>
     <button class="film-details__comment-delete">Delete</button>
   </p>
 </div>
 </li>`;
+};
 
 export default class FilmCommentView {
   constructor(props) {

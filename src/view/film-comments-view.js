@@ -1,15 +1,19 @@
 import { createElement } from '../render';
 
-const createCommentsContainerTemplate = ({ comments = [], newCommentForm = '' }) => `
-<section class="film-details__comments-wrap">
-<h3 class="film-details__comments-title">Comments <span class="film-details__comments-count">4</span></h3>
+const createCommentsContainerTemplate = ({ comments = [], newCommentForm = '' }) => {
+  const commentsCount = comments.length;
 
-<ul class="film-details__comments-list">
-  ${comments.join('\n')}
-</ul>
+  return `
+  <section class="film-details__comments-wrap">
+  <h3 class="film-details__comments-title">Comments <span class="film-details__comments-count">${commentsCount}</span></h3>
 
-${newCommentForm}
-</section>`;
+  <ul class="film-details__comments-list">
+    ${comments.join('\n')}
+  </ul>
+
+  ${newCommentForm}
+  </section>`;
+};
 
 export default class FilmCommentsContainerView {
   constructor(children) {
