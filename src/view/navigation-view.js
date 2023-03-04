@@ -1,29 +1,26 @@
 import { createElement } from '../render';
 
-const createNavigationContainerTemplate = (items = []) =>
+const createNavigationContainerTemplate = () =>
   `<nav class="main-navigation">
   <a href="#all" class="main-navigation__item main-navigation__item--active">All movies</a>
-  ${items.join('\n')}
 </nav>`;
 
 export default class NavigationView {
-  constructor(items = []) {
-    this.items = items;
+  #element = null;
+
+  get template() {
+    return createNavigationContainerTemplate();
   }
 
-  getTemplate() {
-    return createNavigationContainerTemplate(this.items);
-  }
-
-  getElement() {
-    if (!this.element) {
-      this.element = createElement(this.getTemplate());
+  get element() {
+    if (!this.#element) {
+      this.#element = createElement(this.template);
     }
 
-    return this.element;
+    return this.#element;
   }
 
   removeElement() {
-    this.element = null;
+    this.#element = null;
   }
 }

@@ -1,16 +1,23 @@
-import { NAVIGATION_ITEMS } from '../model/navigarion-model';
 import { render } from '../render';
 import NavigationItemView from '../view/navigation-item-view';
 import NavigationView from '../view/navigation-view';
 
 export default class NavigationPresenter {
-  constructor() {
-    this.navigationItems = NAVIGATION_ITEMS.map((item) =>
-      new NavigationItemView(item).getTemplate()
-    );
+  #navigationContainer = null;
+  #navModel = null;
+
+  constructor(navModel = []) {
+    this.#navModel = navModel;
+    this.navItems = [...this.#navModel.navItems];
   }
 
-  init(container) {
-    render(new NavigationView(this.navigationItems), container);
-  }
+  init = (container) => {
+    this.#navigationContainer = new NavigationView();
+
+    render(this.#navigationContainer, container);
+
+    for (const navItem of this.navItems) {
+      render(new NavigationItemView(navItem), this.#navigationContainer.element);
+    }
+  };
 }
