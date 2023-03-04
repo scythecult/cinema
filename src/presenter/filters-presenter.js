@@ -1,9 +1,9 @@
 import { render } from '../render';
 import FilterView from '../view/filter-view';
-import FiltersConainerView from '../view/filters-conainer-view';
+import FiltersContainerView from '../view/filters-container-view';
 
 export default class FiltersPresenter {
-  #filtersConainer = null;
+  #filtersContainer = null;
   #filterModel = null;
 
   constructor(filterModel = {}) {
@@ -12,12 +12,12 @@ export default class FiltersPresenter {
   }
 
   init = (container) => {
-    this.#filtersConainer = new FiltersConainerView();
+    this.#filtersContainer = new FiltersContainerView();
 
-    render(this.#filtersConainer, container);
+    render(this.#filtersContainer, container);
 
     for (const filter of this.filterItems) {
-      render(new FilterView(filter), this.#filtersConainer.element);
+      render(new FilterView(filter), this.#filtersContainer.element);
     }
   };
 }

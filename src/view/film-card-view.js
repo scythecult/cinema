@@ -43,23 +43,26 @@ const createFilmCardTemplate = (props = {}) => {
 };
 
 export default class FilmCardView {
+  #element = null;
+  #props = null;
+
   constructor(props = {}) {
-    this.props = props;
+    this.#props = props;
   }
 
-  getTemplate() {
-    return createFilmCardTemplate(this.props);
+  get template() {
+    return createFilmCardTemplate(this.#props);
   }
 
-  getElement() {
-    if (!this.element) {
-      this.element = createElement(this.getTemplate());
+  get element() {
+    if (!this.#element) {
+      this.#element = createElement(this.template);
     }
 
-    return this.element;
+    return this.#element;
   }
 
   removeElement() {
-    this.element = null;
+    this.#element = null;
   }
 }

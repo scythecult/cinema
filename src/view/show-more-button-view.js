@@ -1,13 +1,13 @@
 import { createElement } from '../render';
 
-const createFiltersContainerTemplate = () => `<ul class="sort">
-</ul>`;
+const createShowMoreButtonTemplate = () =>
+  '<button class="films-list__show-more">Show more</button>';
 
-export default class FiltersConainerView {
+export default class ShowMoreButtonView {
   #element = null;
 
   get template() {
-    return createFiltersContainerTemplate();
+    return createShowMoreButtonTemplate();
   }
 
   get element() {
