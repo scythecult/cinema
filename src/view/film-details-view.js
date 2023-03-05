@@ -1,6 +1,6 @@
 import { createElement } from '../render';
 
-const createFilmDetailsTemplate = (props) => {
+const createFilmDetailsTemplate = (props = {}) => {
   const {
     poster = './images/posters/the-great-flamarion.jpg',
     title = 'The Great Flamarion',
@@ -78,23 +78,26 @@ const createFilmDetailsTemplate = (props) => {
 };
 
 export default class FilmDetailsView {
+  #props = null;
+  #element = null;
+
   constructor(props = {}) {
-    this.props = props;
+    this.#props = props;
   }
 
-  getTemplate() {
-    return createFilmDetailsTemplate(this.props);
+  get template() {
+    return createFilmDetailsTemplate(this.#props);
   }
 
-  getElement() {
-    if (!this.element) {
-      this.element = createElement(this.getTemplate());
+  get element() {
+    if (!this.#element) {
+      this.#element = createElement(this.template);
     }
 
-    return this.element;
+    return this.#element;
   }
 
   removeElement() {
-    this.element = null;
+    this.#element = null;
   }
 }

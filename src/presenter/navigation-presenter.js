@@ -3,8 +3,9 @@ import NavigationItemView from '../view/navigation-item-view';
 import NavigationView from '../view/navigation-view';
 
 export default class NavigationPresenter {
-  #navigationContainer = null;
   #navModel = null;
+
+  #navigationContainer = new NavigationView();
 
   constructor(navModel = {}) {
     this.#navModel = navModel;
@@ -12,8 +13,6 @@ export default class NavigationPresenter {
   }
 
   init = (container) => {
-    this.#navigationContainer = new NavigationView();
-
     render(this.#navigationContainer, container);
 
     for (const navItem of this.navItems) {

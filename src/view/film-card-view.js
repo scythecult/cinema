@@ -11,7 +11,7 @@ const createFilmCardTemplate = (props = {}) => {
     poster = '',
     description = '',
   } = props.filmInfo;
-  const { comments = [] } = props;
+  const { id, comments = [] } = props;
   const { alreadyWatched = false, favorite = false, watchlist = false } = props.userDetails;
 
   const watchListClass = watchlist ? 'film-card__controls-item--active' : '';
@@ -21,7 +21,7 @@ const createFilmCardTemplate = (props = {}) => {
   const duration = formatDuration(runtime);
   const releaseYear = formatDate(date);
 
-  return `<article class="film-card">
+  return `<article class="film-card" data-film-id='${id}'>
   <a class="film-card__link">
     <h3 class="film-card__title">${title}</h3>
     <p class="film-card__rating">${totalRating}</p>

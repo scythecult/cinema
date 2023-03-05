@@ -1,38 +1,35 @@
 import { createElement } from '../render';
 
-const createCommentsContainerTemplate = ({ comments = [], newCommentForm = '' }) => {
-  const commentsCount = comments.length;
-
-  return `
+const createCommentsContainerTemplate = (commentsCount) => `
   <section class="film-details__comments-wrap">
   <h3 class="film-details__comments-title">Comments <span class="film-details__comments-count">${commentsCount}</span></h3>
 
   <ul class="film-details__comments-list">
-    ${comments.join('\n')}
   </ul>
 
-  ${newCommentForm}
   </section>`;
-};
 
 export default class FilmCommentsContainerView {
-  constructor(children) {
-    this.children = children;
+  #props = null;
+  #element = null;
+
+  constructor(props = '') {
+    this.#props = props;
   }
 
-  getTemplate() {
-    return createCommentsContainerTemplate(this.children);
+  get template() {
+    return createCommentsContainerTemplate(this.#props);
   }
 
-  getElement() {
-    if (!this.element) {
-      this.element = createElement(this.getTemplate());
+  get element() {
+    if (!this.#element) {
+      this.#element = createElement(this.template);
     }
 
-    return this.element;
+    return this.#element;
   }
 
   removeElement() {
-    this.element = null;
+    this.#element = null;
   }
 }
