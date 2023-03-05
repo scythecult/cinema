@@ -29,19 +29,21 @@ const createNewCommentFormTemplate = () => {
 };
 
 export default class NewCommentFormView {
-  getTemplate() {
-    return createNewCommentFormTemplate(this.children);
+  #element = null;
+
+  get template() {
+    return createNewCommentFormTemplate();
   }
 
-  getElement() {
-    if (!this.element) {
-      this.element = createElement(this.getTemplate());
+  get element() {
+    if (!this.#element) {
+      this.#element = createElement(this.template);
     }
 
-    return this.element;
+    return this.#element;
   }
 
   removeElement() {
-    this.element = null;
+    this.#element = null;
   }
 }

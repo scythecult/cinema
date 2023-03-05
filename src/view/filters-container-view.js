@@ -1,15 +1,13 @@
 import { createElement } from '../render';
 
-const createNavigationContainerTemplate = () =>
-  `<nav class="main-navigation">
-  <a href="#all" class="main-navigation__item main-navigation__item--active">All movies</a>
-</nav>`;
+const createFiltersContainerTemplate = () => `<ul class="sort">
+</ul>`;
 
-export default class NavigationView {
+export default class FiltersContainerView {
   #element = null;
 
   get template() {
-    return createNavigationContainerTemplate();
+    return createFiltersContainerTemplate();
   }
 
   get element() {

@@ -1,6 +1,6 @@
 import { createElement } from '../render';
 
-const createFilmDetailsControlsTemplate = (props) => {
+const createFilmDetailsControlsTemplate = (props = {}) => {
   const { watchlist, alreadyWatched, favorite } = props;
   const watchListClass = watchlist ? 'film-details__control-button--active' : '';
   const alreadyWatchedClass = alreadyWatched ? 'film-details__control-button--active' : '';
@@ -15,23 +15,26 @@ const createFilmDetailsControlsTemplate = (props) => {
 };
 
 export default class FilmDetailsControlsView {
-  constructor(props) {
-    this.props = props;
+  #props = null;
+  #element = null;
+
+  constructor(props = {}) {
+    this.#props = props;
   }
 
-  getTemplate() {
-    return createFilmDetailsControlsTemplate(this.props);
+  get template() {
+    return createFilmDetailsControlsTemplate(this.#props);
   }
 
-  getElement() {
-    if (!this.element) {
-      this.element = createElement(this.getTemplate());
+  get element() {
+    if (!this.#element) {
+      this.#element = createElement(this.template);
     }
 
-    return this.element;
+    return this.#element;
   }
 
   removeElement() {
-    this.element = null;
+    this.#element = null;
   }
 }

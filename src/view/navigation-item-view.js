@@ -4,23 +4,26 @@ const createNavigationItemTemplate = ({ name = 'Item', href = '#item', count = '
   `<a href="${href}" class="main-navigation__item">${name} <span class="main-navigation__item-count">${count}</span></a>`;
 
 export default class NavigationItemView {
+  #element = null;
+  #props = null;
+
   constructor(props = {}) {
-    this.props = props;
+    this.#props = props;
   }
 
-  getTemplate() {
-    return createNavigationItemTemplate(this.props);
+  get template() {
+    return createNavigationItemTemplate(this.#props);
   }
 
-  getElement() {
-    if (!this.element) {
-      this.element = createElement(this.getTemplate());
+  get element() {
+    if (!this.#element) {
+      this.#element = createElement(this.template);
     }
 
-    return this.element;
+    return this.#element;
   }
 
   removeElement() {
-    this.element = null;
+    this.#element = null;
   }
 }

@@ -13,4 +13,10 @@ const FILTER_ITEMS = [
   },
 ];
 
-export { FILTER_ITEMS };
+export default class FiltersModel {
+  #filters = FILTER_ITEMS;
+
+  get filters() {
+    return this.#filters;
+  }
+}

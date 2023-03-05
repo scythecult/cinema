@@ -4,4 +4,10 @@ const NAVIGATION_ITEMS = [
   { name: 'Favorites', href: '#favorites', count: '8' },
 ];
 
-export { NAVIGATION_ITEMS };
+export default class NavModel {
+  #navItems = NAVIGATION_ITEMS;
+
+  get navItems() {
+    return this.#navItems;
+  }
+}

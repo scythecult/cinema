@@ -1,7 +1,7 @@
 import { createElement } from '../render';
 import { formatDate } from '../utils';
 
-const createCommentTemplate = (props) => {
+const createCommentTemplate = (props = {}) => {
   const {
     emotion = './images/emoji/smile.png',
     comment = 'Interesting setting and a good cast',
@@ -26,23 +26,26 @@ const createCommentTemplate = (props) => {
 };
 
 export default class FilmCommentView {
-  constructor(props) {
-    this.props = props;
+  #props = null;
+  #element = null;
+
+  constructor(props = {}) {
+    this.#props = props;
   }
 
-  getTemplate() {
-    return createCommentTemplate(this.props);
+  get template() {
+    return createCommentTemplate(this.#props);
   }
 
-  getElement() {
-    if (!this.element) {
-      this.element = createElement(this.getTemplate());
+  get element() {
+    if (!this.#element) {
+      this.#element = createElement(this.template);
     }
 
-    return this.element;
+    return this.#element;
   }
 
   removeElement() {
-    this.element = null;
+    this.#element = null;
   }
 }
