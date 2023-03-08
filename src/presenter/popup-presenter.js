@@ -1,19 +1,16 @@
-// import { COMMENTS } from '../mock/comments';
 import CommentsModel from '../model/comments-model';
 import { render } from '../render';
+import DropdownView from '../view/dropdown-view';
 import FilmDetailsControlsView from '../view/film-details-controls-view';
 import FilmDetailsView from '../view/film-details-view';
-// import FilmCommentView from '../view/film-comment-view';
-// import FilmCommentsContainerView from '../view/film-comments-view';
-// import FilmDetailsControlsView from '../view/film-details-controls-view';
-// import FilmDetailsView from '../view/film-details-view';
-// import NewCommentFormView from '../view/film-new-comment-form-view';
 import PopupView from '../view/popup-view';
 import CommentsPresenter from './comments-presenter';
 
 export default class PopupPresenter {
+  #dropdown = null;
   #popup = null;
   #popupContainer = null;
+  #selectedFilm = null;
   #filmDetailsTopContainer = null;
   #filmDetailsBottomContainer = null;
   #filmInfo = null;
@@ -22,16 +19,20 @@ export default class PopupPresenter {
   #commentsModel = null;
   #commentsPresenter = null;
 
-  constructor(popupContainer = {}) {
-    this.#popupContainer = popupContainer;
+  constructor(selectedFilm = {}) {
+    this.#selectedFilm = selectedFilm;
   }
 
   destroy = () => {
+    this.#dropdown.element.remove();
+    this.#dropdown.removeElement();
     this.#popup.element.remove();
     this.#popup.removeElement();
   };
 
-  init = (selectedFilm = {}) => {
+  init = (popupContainer = {}) => {
+    this.#popupContainer = popupContainer;
+    this.#dropdown = new DropdownView();
     this.#popup = new PopupView();
     this.#filmDetailsTopContainer = this.#popup.element.querySelector(
       '.film-details__top-container'
@@ -41,11 +42,12 @@ export default class PopupPresenter {
     );
     this.#commentsModel = new CommentsModel();
 
-    this.#filmInfo = selectedFilm.filmInfo;
-    this.#filmCommentIds = selectedFilm.comments;
-    this.#userDetails = selectedFilm.userDetails;
+    this.#filmInfo = this.#selectedFilm.filmInfo;
+    this.#filmCommentIds = this.#selectedFilm.comments;
+    this.#userDetails = this.#selectedFilm.userDetails;
     this.#commentsPresenter = new CommentsPresenter(this.#commentsModel);
 
+    render(this.#dropdown, this.#popupContainer);
     render(this.#popup, this.#popupContainer);
     render(new FilmDetailsView(this.#filmInfo), this.#filmDetailsTopContainer);
     render(new FilmDetailsControlsView(this.#userDetails), this.#filmDetailsTopContainer);
