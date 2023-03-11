@@ -1,5 +1,5 @@
 import CommentsModel from '../model/comments-model';
-import { render } from '../render';
+import { render } from '../framework/render';
 import DropdownView from '../view/dropdown-view';
 import FilmDetailsControlsView from '../view/film-details-controls-view';
 import FilmDetailsView from '../view/film-details-view';

@@ -1,4 +1,4 @@
-import { render } from '../render';
+import { render } from '../framework/render';
 import FilmCommentView from '../view/film-comment-view';
 import FilmCommentsContainerView from '../view/film-comments-view';
 import NewCommentFormView from '../view/film-new-comment-form-view';
