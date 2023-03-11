@@ -1,24 +1,10 @@
-import { createElement } from '../render';
+import AbstractView from '../framework/view/abstract-view';
 
 const createFiltersContainerTemplate = () => `<ul class="sort">
 </ul>`;
 
-export default class FiltersContainerView {
-  #element = null;
-
+export default class FiltersContainerView extends AbstractView {
   get template() {
     return createFiltersContainerTemplate();
-  }
-
-  get element() {
-    if (!this.#element) {
-      this.#element = createElement(this.template);
-    }
-
-    return this.#element;
-  }
-
-  removeElement() {
-    this.#element = null;
   }
 }

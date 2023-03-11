@@ -1,4 +1,4 @@
-import { createElement } from '../render';
+import AbstractView from '../framework/view/abstract-view';
 import { formatDate } from '../utils';
 
 const createCommentTemplate = (props = {}) => {
@@ -25,27 +25,15 @@ const createCommentTemplate = (props = {}) => {
 </li>`;
 };
 
-export default class FilmCommentView {
+export default class FilmCommentView extends AbstractView {
   #props = null;
-  #element = null;
 
   constructor(props = {}) {
+    super();
     this.#props = props;
   }
 
   get template() {
     return createCommentTemplate(this.#props);
-  }
-
-  get element() {
-    if (!this.#element) {
-      this.#element = createElement(this.template);
-    }
-
-    return this.#element;
-  }
-
-  removeElement() {
-    this.#element = null;
   }
 }
