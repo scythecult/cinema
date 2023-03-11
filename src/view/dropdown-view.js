@@ -1,23 +1,9 @@
-import { createElement } from '../render';
+import AbstractView from '../framework/view/abstract-view';
 
 const createDropdownTemplate = () => '<div class="dropdown"></div>';
 
-export default class DropdownView {
-  #element = null;
-
+export default class DropdownView extends AbstractView {
   get template() {
     return createDropdownTemplate();
-  }
-
-  get element() {
-    if (!this.#element) {
-      this.#element = createElement(this.template);
-    }
-
-    return this.#element;
-  }
-
-  removeElement() {
-    this.#element = null;
   }
 }

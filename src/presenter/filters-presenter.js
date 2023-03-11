@@ -1,4 +1,4 @@
-import { render, RenderPosition } from '../render';
+import { render, RenderPosition } from '../framework/render';
 import FilterView from '../view/filter-view';
 import FiltersContainerView from '../view/filters-container-view';
 

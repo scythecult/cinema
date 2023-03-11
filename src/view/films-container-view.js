@@ -1,4 +1,4 @@
-import { createElement } from '../render';
+import AbstractView from '../framework/view/abstract-view';
 
 const createFilmsContainerTemplate = () => `
 <section class="films">
@@ -12,22 +12,20 @@ const createFilmsContainerTemplate = () => `
   </section>
 </section>`;
 
-export default class FilmsContainerView {
-  #element = null;
-
+export default class FilmsContainerView extends AbstractView {
   get template() {
     return createFilmsContainerTemplate();
   }
 
-  get element() {
-    if (!this.#element) {
-      this.#element = createElement(this.template);
-    }
+  setClickHandler = (callback = () => {}) => {
+    this._callback.click = callback;
 
-    return this.#element;
-  }
+    this.element.addEventListener('click', this.#clickHandler);
+  };
 
-  removeElement() {
-    this.#element = null;
-  }
+  #clickHandler = (evt) => {
+    evt.preventDefault();
+
+    this._callback.click(evt);
+  };
 }

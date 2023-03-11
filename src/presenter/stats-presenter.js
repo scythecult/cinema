@@ -1,4 +1,4 @@
-import { render } from '../render';
+import { render } from '../framework/render';
 import StatsView from '../view/stats-view';
 
 export default class StatsPresenter {

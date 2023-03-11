@@ -1,5 +1,5 @@
 import { EMOTIONS } from '../const';
-import { createElement } from '../render';
+import AbstractView from '../framework/view/abstract-view';
 
 const createCommentEmojiTemplate = () =>
   EMOTIONS.map(
@@ -28,22 +28,8 @@ const createNewCommentFormTemplate = () => {
   </div>`;
 };
 
-export default class NewCommentFormView {
-  #element = null;
-
+export default class NewCommentFormView extends AbstractView {
   get template() {
     return createNewCommentFormTemplate();
-  }
-
-  get element() {
-    if (!this.#element) {
-      this.#element = createElement(this.template);
-    }
-
-    return this.#element;
-  }
-
-  removeElement() {
-    this.#element = null;
   }
 }

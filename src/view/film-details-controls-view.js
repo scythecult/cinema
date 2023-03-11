@@ -1,4 +1,4 @@
-import { createElement } from '../render';
+import AbstractView from '../framework/view/abstract-view';
 
 const createFilmDetailsControlsTemplate = (props = {}) => {
   const { watchlist, alreadyWatched, favorite } = props;
@@ -14,27 +14,15 @@ const createFilmDetailsControlsTemplate = (props = {}) => {
 </section>`;
 };
 
-export default class FilmDetailsControlsView {
+export default class FilmDetailsControlsView extends AbstractView {
   #props = null;
-  #element = null;
 
   constructor(props = {}) {
+    super();
     this.#props = props;
   }
 
   get template() {
     return createFilmDetailsControlsTemplate(this.#props);
-  }
-
-  get element() {
-    if (!this.#element) {
-      this.#element = createElement(this.template);
-    }
-
-    return this.#element;
-  }
-
-  removeElement() {
-    this.#element = null;
   }
 }
