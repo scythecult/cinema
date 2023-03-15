@@ -1,5 +1,5 @@
 import CommentsModel from '../model/comments-model';
-import { render } from '../framework/render';
+import { remove, render } from '../framework/render';
 import DropdownView from '../view/dropdown-view';
 import FilmDetailsControlsView from '../view/film-details-controls-view';
 import FilmDetailsView from '../view/film-details-view';
@@ -8,7 +8,7 @@ import CommentsPresenter from './comments-presenter';
 
 export default class PopupPresenter {
   #dropdown = null;
-  #popup = null;
+  #popupComponent = null;
   #popupContainer = null;
   #selectedFilm = null;
   #filmDetailsTopContainer = null;
@@ -18,26 +18,32 @@ export default class PopupPresenter {
   #userDetails = null;
   #commentsModel = null;
   #commentsPresenter = null;
+  #handleKeydown = null;
 
-  constructor(selectedFilm = {}) {
+  constructor(selectedFilm = {}, handleKeydown) {
     this.#selectedFilm = selectedFilm;
+    this.#handleKeydown = handleKeydown;
   }
 
   destroy = () => {
-    this.#dropdown.element.remove();
-    this.#dropdown.removeElement();
-    this.#popup.element.remove();
-    this.#popup.removeElement();
+    remove(this.#dropdown);
+    remove(this.#popupComponent);
+    this.#popupComponent.removeOverflow();
+  };
+
+  #handleCloseClick = () => {
+    this.destroy();
+    document.removeEventListener('keydown', this.#handleKeydown);
   };
 
   init = (popupContainer = {}) => {
     this.#popupContainer = popupContainer;
     this.#dropdown = new DropdownView();
-    this.#popup = new PopupView();
-    this.#filmDetailsTopContainer = this.#popup.element.querySelector(
+    this.#popupComponent = new PopupView();
+    this.#filmDetailsTopContainer = this.#popupComponent.element.querySelector(
       '.film-details__top-container'
     );
-    this.#filmDetailsBottomContainer = this.#popup.element.querySelector(
+    this.#filmDetailsBottomContainer = this.#popupComponent.element.querySelector(
       '.film-details__bottom-container'
     );
     this.#commentsModel = new CommentsModel();
@@ -48,9 +54,12 @@ export default class PopupPresenter {
     this.#commentsPresenter = new CommentsPresenter(this.#commentsModel);
 
     render(this.#dropdown, this.#popupContainer);
-    render(this.#popup, this.#popupContainer);
+    render(this.#popupComponent, this.#popupContainer);
     render(new FilmDetailsView(this.#filmInfo), this.#filmDetailsTopContainer);
     render(new FilmDetailsControlsView(this.#userDetails), this.#filmDetailsTopContainer);
+
+    this.#popupComponent.addOverflow();
+    this.#popupComponent.setClickHandler(this.#handleCloseClick);
     this.#commentsPresenter.init(this.#filmDetailsBottomContainer, this.#filmCommentIds);
   };
 }
