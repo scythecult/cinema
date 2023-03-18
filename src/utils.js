@@ -16,5 +16,15 @@ const formatDuration = (rawTime) => {
   return `${hours} ${minutes}`;
 };
 
+const updateItem = (items = [], update = {}) => {
+  const index = items.findIndex((item) => item.id === update.id);
+
+  if (index === -1) {
+    return items;
+  }
+
+  return [...items.slice(0, index), update, ...items.slice(index + 1)];
+};
+
 const formatDate = (rawDate) => new Date(rawDate).getFullYear();
-export { getRandomInteger, formatDuration, formatDate };
+export { getRandomInteger, formatDuration, formatDate, updateItem };

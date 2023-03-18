@@ -7,8 +7,8 @@ import PopupView from '../view/popup-view';
 import CommentsPresenter from './comments-presenter';
 
 export default class PopupPresenter {
-  #dropdown = null;
-  #popupComponent = null;
+  #dropdown = new DropdownView();
+  #popupComponent = new PopupView();
   #popupContainer = null;
   #selectedFilm = null;
   #filmDetailsTopContainer = null;
@@ -26,9 +26,9 @@ export default class PopupPresenter {
   }
 
   destroy = () => {
+    this.#popupComponent.removeOverflow();
     remove(this.#dropdown);
     remove(this.#popupComponent);
-    this.#popupComponent.removeOverflow();
   };
 
   #handleCloseClick = () => {
@@ -38,8 +38,6 @@ export default class PopupPresenter {
 
   init = (popupContainer = {}) => {
     this.#popupContainer = popupContainer;
-    this.#dropdown = new DropdownView();
-    this.#popupComponent = new PopupView();
     this.#filmDetailsTopContainer = this.#popupComponent.element.querySelector(
       '.film-details__top-container'
     );

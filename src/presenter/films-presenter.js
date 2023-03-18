@@ -12,6 +12,7 @@ export default class FilmsPresenter {
   #filmsModel = {};
   #filtersModel = {};
   #filmItems = [];
+  #filmPresenter = new Map();
 
   #filmList = null;
   #filmListContainer = null;
@@ -41,28 +42,42 @@ export default class FilmsPresenter {
       )
       .slice(0, limit);
 
-  #renderFilters(filtersModel) {
+  #renderFilters = (filtersModel) => {
     this.#filmFiltersPresenter = new FiltersPresenter(filtersModel);
 
     this.#filmFiltersPresenter.init(this.#filmList);
-  }
+  };
 
   #renderFilms = (from, to) => {
     this.#filmItems.slice(from, to).forEach((film) => this.#renderFilm(film));
   };
 
-  #renderFilm(selectedFilm = {}) {
+  #renderFilm = (selectedFilm = {}) => {
     const filmPresenter = new FilmPresenter(this.#filmListContainer);
     filmPresenter.init(selectedFilm);
-  }
+    this.#filmPresenter.set(selectedFilm.id, filmPresenter);
+  };
 
-  #renderFilmList() {
+  #renderFilmList = () => {
     this.#renderFilms(0, Math.min(this.#filmItems.length, FILM_COUNT_PER_STEP));
-  }
+  };
 
-  #renderStub() {
+  #renderStub = () => {
     render(this.#filmsEmptyComponent, this.#filmList, RenderPosition.AFTERBEGIN);
-  }
+  };
+
+  #renderExtraFilms = (extraInfo = [], container = {}) => {
+    for (const extra of extraInfo) {
+      render(new FilmCardView(extra), container);
+    }
+  };
+
+  #clearFilmList = () => {
+    this.#filmPresenter.forEach((presenter) => presenter.destroy());
+    this.#filmPresenter.clear();
+    this.#renderedFilmCount = FILM_COUNT_PER_STEP;
+    remove(this.#showMoreButtonComponent);
+  };
 
   #handleShowMoreClick = () => {
     this.#renderFilms(this.#renderedFilmCount, this.#renderedFilmCount + FILM_COUNT_PER_STEP);
@@ -71,12 +86,6 @@ export default class FilmsPresenter {
 
     if (this.#renderedFilmCount >= this.#filmItems.length) {
       remove(this.#showMoreButtonComponent);
-    }
-  };
-
-  #renderExtraFilms = (extraInfo = [], container = {}) => {
-    for (const extra of extraInfo) {
-      render(new FilmCardView(extra), container);
     }
   };
 
@@ -105,7 +114,7 @@ export default class FilmsPresenter {
     if (this.#filmItems.length > FILM_COUNT_PER_STEP) {
       render(this.#showMoreButtonComponent, this.#filmList);
 
-      this.#showMoreButtonComponent.setClickHanlder(this.#handleShowMoreClick);
+      this.#showMoreButtonComponent.setClickHandler(this.#handleShowMoreClick);
     }
 
     render(this.#filmsTopRatedComponent, this.#filmsContainerComponent.element);
