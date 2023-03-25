@@ -44,24 +44,53 @@ const createFilmCardTemplate = (props = {}) => {
 
 export default class FilmCardView extends AbstractView {
   #props = null;
+  #handleCardClick = null;
+  #handleWatchListClick = null;
+  #handleWatchedClick = null;
+  #handleFavoriteClick = null;
 
-  constructor(props = {}) {
+  constructor({ film, onCardClick, onWatchListClick, onWatchedClick, onFavoriteClick } = {}) {
     super();
+    this.#props = film;
+    this.#handleCardClick = onCardClick;
+    this.#handleWatchListClick = onWatchListClick;
+    this.#handleWatchedClick = onWatchedClick;
+    this.#handleFavoriteClick = onFavoriteClick;
 
-    this.#props = props;
+    this.element.addEventListener('click', this.#clickHandler);
+    this.element
+      .querySelector('.film-card__controls-item--add-to-watchlist')
+      .addEventListener('click', this.#addToWatchlistClick);
+    this.element
+      .querySelector('.film-card__controls-item--mark-as-watched')
+      .addEventListener('click', this.#addToWatchedClick);
+    this.element
+      .querySelector('.film-card__controls-item--favorite')
+      .addEventListener('click', this.#addToFavoriteClick);
   }
 
   get template() {
     return createFilmCardTemplate(this.#props);
   }
 
-  setClickHandler = (callback = () => {}) => {
-    this._callback.click = callback;
-
-    this.element.addEventListener('click', this.#clickHandler);
+  #addToWatchedClick = (evt) => {
+    evt.preventDefault();
+    this.#handleWatchedClick();
   };
 
-  #clickHandler = () => {
-    this._callback.click();
+  #addToWatchlistClick = (evt) => {
+    evt.preventDefault();
+    this.#handleWatchListClick();
+  };
+
+  #addToFavoriteClick = (evt) => {
+    evt.preventDefault();
+    this.#handleFavoriteClick();
+  };
+
+  #clickHandler = (evt) => {
+    if (evt.target.closest('.film-card__link')) {
+      this.#handleCardClick();
+    }
   };
 }

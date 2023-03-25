@@ -7,7 +7,7 @@ export default class NavigationPresenter {
 
   #navigationContainer = new NavigationView();
 
-  constructor(navModel = {}) {
+  constructor({ navModel = {} }) {
     this.#navModel = navModel;
     this.navItems = [...this.#navModel.navItems];
   }
