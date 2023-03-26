@@ -1,59 +1,25 @@
 import { remove, render, replace } from '../framework/render';
 import FilmCardView from '../view/film-card-view';
-// import PopupPresenter from './popup-presenter';
 
 export default class FilmPresenter {
-  // #popupPresenter = new Map();
-
-  #popupContainer = document.body;
   #filmListContainer = null;
   #film = null;
   #filmComponent = null;
 
   #changeData = null;
+  #renderPopup = null;
 
-  constructor({ filmsListContainer, changeData }) {
+  constructor({ filmsListContainer, changeData, renderPopup }) {
     this.#filmListContainer = filmsListContainer;
     this.#changeData = changeData;
+    this.#renderPopup = renderPopup;
   }
 
-  // #renderPopup = (film = {}) => {
-  //   const popupPresenter = new PopupPresenter(
-  //     this.#popupContainer,
-  //     this.#changePopupData,
-  //     this.#handleKeydown
-  //   );
-
-  //   popupPresenter.init(film);
-  //   this.#popupPresenter.set(film.id, popupPresenter);
-  // };
-
-  // #changePopupData = (updatedFilm) => {
-  //   this.#changeData(updatedFilm);
-
-  //   this.#popupPresenter.get(updatedFilm.id).init(updatedFilm);
-  // };
-
-  // #removePopup = () => {
-  //   this.#popupPresenter.forEach((presenter) => presenter.destroy());
-  //   this.#popupPresenter.clear();
-  // };
-
-  #handleKeydown = (evt) => {
-    if (evt.key === 'Escape' || evt.key === 'Esc') {
-      evt.preventDefault();
-
-      // this.#removePopup();
-      document.removeEventListener('keydown', this.#handleKeydown);
-    }
+  #handleCardClick = () => {
+    this.#renderPopup(this.#film);
   };
 
-  #handleClick = () => {
-    // this.#renderPopup(this.#film);
-    document.addEventListener('keydown', this.#handleKeydown);
-  };
-
-  #handleAddToWatchClick = () => {
+  #handleWatchlistClick = () => {
     this.#changeData({
       ...this.#film,
       userDetails: {
@@ -87,10 +53,11 @@ export default class FilmPresenter {
     this.#film = film;
 
     const prevFilmComponent = this.#filmComponent;
+
     this.#filmComponent = new FilmCardView({
       film: this.#film,
-      onCardClick: this.#handleClick,
-      onWatchListClick: this.#handleAddToWatchClick,
+      onCardClick: this.#handleCardClick,
+      onWatchlistClick: this.#handleWatchlistClick,
       onWatchedClick: this.#handleWatchedClick,
       onFavoriteClick: this.#handleFavoriteClick,
     });

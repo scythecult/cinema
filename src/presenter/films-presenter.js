@@ -7,14 +7,19 @@ import EmptyListView from '../view/list-empty-view';
 import ShowMoreButtonView from '../view/show-more-button-view';
 import FilmPresenter from './film-presenter';
 import FiltersPresenter from './filters-presenter';
+import PopupPresenter from './popup-presenter';
 
 const FILM_COUNT_PER_STEP = 5;
 export default class FilmsPresenter {
-  #filmsModel = {};
-  #filtersModel = {};
-  #filmItems = [];
+  #filmsModel = null;
+  #filtersModel = null;
+  #commentsModel = null;
+  #filmItems = null;
   #filmPresenter = new Map();
+  #popupPresenter = new Map();
+  #commentItems = null;
 
+  #popupContainer = document.body;
   #filmList = null;
   #filmListContainer = null;
   #filmsTopRatedContainer = null;
@@ -31,10 +36,12 @@ export default class FilmsPresenter {
   #filmsTopRatedComponent = null;
   #filmsMostCommentedComponent = null;
 
-  constructor({ filmsModel = {}, filtersModel = {} }) {
+  constructor({ filmsModel = {}, filtersModel = {}, commentsModel = {} }) {
     this.#filmsModel = filmsModel;
-    this.#filmItems = [...this.#filmsModel.films];
+    this.#commentsModel = commentsModel;
     this.#filtersModel = filtersModel;
+    this.#filmItems = [...this.#filmsModel.films];
+    this.#commentItems = [...this.#commentsModel.comments];
   }
 
   #filterFilmsBy = (propA, propB, limit = 2) =>
@@ -52,7 +59,19 @@ export default class FilmsPresenter {
 
   #handleFilmChange = (updatedFilm) => {
     this.#filmItems = updateItem(this.#filmItems, updatedFilm);
-    this.#filmPresenter.get(updatedFilm.id).init(updatedFilm);
+    this.#filmPresenter.get(updatedFilm.id)?.init(updatedFilm);
+    this.#popupPresenter.get(updatedFilm.id)?.init(updatedFilm);
+  };
+
+  #renderPopup = (film) => {
+    const popupPresenter = new PopupPresenter({
+      popupContainer: this.#popupContainer,
+      comments: this.#commentItems,
+      changeData: this.#handleFilmChange,
+    });
+
+    popupPresenter.init(film);
+    this.#popupPresenter.set(film.id, popupPresenter);
   };
 
   #renderFilm = (film = {}) => {
@@ -62,6 +81,7 @@ export default class FilmsPresenter {
     const filmPresenter = new FilmPresenter({
       filmsListContainer: this.#filmListContainer,
       changeData: this.#handleFilmChange,
+      renderPopup: this.#renderPopup,
     });
 
     filmPresenter.init(film);

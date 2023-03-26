@@ -43,17 +43,17 @@ const createFilmCardTemplate = (props = {}) => {
 };
 
 export default class FilmCardView extends AbstractView {
-  #props = null;
+  #film = null;
   #handleCardClick = null;
-  #handleWatchListClick = null;
+  #handleWatchlistClick = null;
   #handleWatchedClick = null;
   #handleFavoriteClick = null;
 
-  constructor({ film, onCardClick, onWatchListClick, onWatchedClick, onFavoriteClick } = {}) {
+  constructor({ film, onCardClick, onWatchlistClick, onWatchedClick, onFavoriteClick } = {}) {
     super();
-    this.#props = film;
+    this.#film = film;
     this.#handleCardClick = onCardClick;
-    this.#handleWatchListClick = onWatchListClick;
+    this.#handleWatchlistClick = onWatchlistClick;
     this.#handleWatchedClick = onWatchedClick;
     this.#handleFavoriteClick = onFavoriteClick;
 
@@ -70,7 +70,7 @@ export default class FilmCardView extends AbstractView {
   }
 
   get template() {
-    return createFilmCardTemplate(this.#props);
+    return createFilmCardTemplate(this.#film);
   }
 
   #addToWatchedClick = (evt) => {
@@ -80,7 +80,7 @@ export default class FilmCardView extends AbstractView {
 
   #addToWatchlistClick = (evt) => {
     evt.preventDefault();
-    this.#handleWatchListClick();
+    this.#handleWatchlistClick();
   };
 
   #addToFavoriteClick = (evt) => {
