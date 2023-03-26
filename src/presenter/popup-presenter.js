@@ -1,56 +1,112 @@
-import CommentsModel from '../model/comments-model';
-import { render } from '../framework/render';
-import DropdownView from '../view/dropdown-view';
-import FilmDetailsControlsView from '../view/film-details-controls-view';
-import FilmDetailsView from '../view/film-details-view';
+import { remove, render, replace } from '../framework/render';
 import PopupView from '../view/popup-view';
-import CommentsPresenter from './comments-presenter';
 
 export default class PopupPresenter {
-  #dropdown = null;
-  #popup = null;
   #popupContainer = null;
-  #selectedFilm = null;
-  #filmDetailsTopContainer = null;
-  #filmDetailsBottomContainer = null;
-  #filmInfo = null;
-  #filmCommentIds = null;
-  #userDetails = null;
-  #commentsModel = null;
-  #commentsPresenter = null;
+  #popupComponent = null;
 
-  constructor(selectedFilm = {}) {
-    this.#selectedFilm = selectedFilm;
+  #film = null;
+  #comments = null;
+  #currentFilmComments = null;
+
+  #changeData = null;
+
+  constructor({ popupContainer, changeData, comments }) {
+    this.#popupContainer = popupContainer;
+    this.#changeData = changeData;
+    this.#comments = comments;
   }
 
-  destroy = () => {
-    this.#dropdown.element.remove();
-    this.#dropdown.removeElement();
-    this.#popup.element.remove();
-    this.#popup.removeElement();
+  #handleWatchlistClick = () => {
+    this.#changeData({
+      ...this.#film,
+      userDetails: {
+        ...this.#film.userDetails,
+        watchlist: !this.#film.userDetails.watchlist,
+      },
+    });
   };
 
-  init = (popupContainer = {}) => {
-    this.#popupContainer = popupContainer;
-    this.#dropdown = new DropdownView();
-    this.#popup = new PopupView();
-    this.#filmDetailsTopContainer = this.#popup.element.querySelector(
-      '.film-details__top-container'
-    );
-    this.#filmDetailsBottomContainer = this.#popup.element.querySelector(
-      '.film-details__bottom-container'
-    );
-    this.#commentsModel = new CommentsModel();
+  #handleWatchedClick = () => {
+    this.#changeData({
+      ...this.#film,
+      userDetails: {
+        ...this.#film.userDetails,
+        alreadyWatched: !this.#film.userDetails.alreadyWatched,
+      },
+    });
+  };
 
-    this.#filmInfo = this.#selectedFilm.filmInfo;
-    this.#filmCommentIds = this.#selectedFilm.comments;
-    this.#userDetails = this.#selectedFilm.userDetails;
-    this.#commentsPresenter = new CommentsPresenter(this.#commentsModel);
+  #handleFavoriteClick = () => {
+    this.#changeData({
+      ...this.#film,
+      userDetails: {
+        ...this.#film.userDetails,
+        favorite: !this.#film.userDetails.favorite,
+      },
+    });
+  };
 
-    render(this.#dropdown, this.#popupContainer);
-    render(this.#popup, this.#popupContainer);
-    render(new FilmDetailsView(this.#filmInfo), this.#filmDetailsTopContainer);
-    render(new FilmDetailsControlsView(this.#userDetails), this.#filmDetailsTopContainer);
-    this.#commentsPresenter.init(this.#filmDetailsBottomContainer, this.#filmCommentIds);
+  #getCurrentFilmComments = () => {
+    const result = [];
+    const commentIdStore = {};
+
+    for (const commentId of this.#film.comments) {
+      if (commentIdStore[commentId]) {
+        commentIdStore[commentId]++;
+      } else {
+        commentIdStore[commentId] = 1;
+      }
+    }
+
+    for (const comment of this.#comments) {
+      if (commentIdStore[comment.id]) {
+        result.push(comment);
+      }
+    }
+
+    return result;
+  };
+
+  #handleCloseClick = () => {
+    this.destroy();
+  };
+
+  #handleKeydown = () => {
+    this.destroy();
+  };
+
+  init = (film = {}) => {
+    this.#film = film;
+    this.#currentFilmComments = this.#getCurrentFilmComments();
+
+    const prevPopupComponent = this.#popupComponent;
+
+    this.#popupComponent = new PopupView({
+      film: this.#film,
+      comments: this.#currentFilmComments,
+      onCloseClick: this.#handleCloseClick,
+      onKeydown: this.#handleKeydown,
+      onWatchlistClick: this.#handleWatchlistClick,
+      onWatchedClick: this.#handleWatchedClick,
+      onFavoriteClick: this.#handleFavoriteClick,
+    });
+
+    if (prevPopupComponent === null) {
+      render(this.#popupComponent, this.#popupContainer);
+
+      return;
+    }
+
+    if (this.#popupContainer.contains(prevPopupComponent.element)) {
+      replace(this.#popupComponent, prevPopupComponent);
+    }
+
+    remove(prevPopupComponent);
+  };
+
+  destroy = () => {
+    this.#popupComponent.removeOverflow();
+    remove(this.#popupComponent);
   };
 }

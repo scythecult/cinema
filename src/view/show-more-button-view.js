@@ -4,19 +4,20 @@ const createShowMoreButtonTemplate = () =>
   '<button class="films-list__show-more">Show more</button>';
 
 export default class ShowMoreButtonView extends AbstractView {
+  #handleClick = null;
+
+  constructor({ onClick = () => {} }) {
+    super();
+    this.#handleClick = onClick;
+    this.element.addEventListener('click', this.#clickHandler);
+  }
+
   get template() {
     return createShowMoreButtonTemplate();
   }
 
-  setClickHanlder = (callback = () => {}) => {
-    this._callback.click = callback;
-
-    this.element.addEventListener('click', this.#clickHandler);
-  };
-
   #clickHandler = (evt) => {
     evt.preventDefault();
-
-    this._callback.click(evt);
+    this.#handleClick();
   };
 }

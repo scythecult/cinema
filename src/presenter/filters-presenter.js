@@ -3,13 +3,13 @@ import FilterView from '../view/filter-view';
 import FiltersContainerView from '../view/filters-container-view';
 
 export default class FiltersPresenter {
-  #filterModel = null;
+  #filtersModel = null;
 
   #filtersContainer = new FiltersContainerView();
 
-  constructor(filterModel = {}) {
-    this.#filterModel = filterModel;
-    this.filterItems = [...this.#filterModel.filters];
+  constructor({ filtersModel = {} }) {
+    this.#filtersModel = filtersModel;
+    this.filterItems = [...this.#filtersModel.filters];
   }
 
   init = (container) => {

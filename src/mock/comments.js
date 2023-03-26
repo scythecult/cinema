@@ -16,7 +16,7 @@ const COMMENTS = [
   },
   {
     id: '3',
-    author: 'John Doe',
+    author: 'Doe Doe',
     comment: 'Very very old. Meh',
     date: '2019-05-11T16:12:32.554Z',
     emotion: 'angry',
