@@ -16,8 +16,6 @@ const filmsModel = new FilmsModel();
 const navModel = new NavModel();
 const commentsModel = new CommentsModel();
 
-// eslint-disable-next-line no-console
-console.log(filmsModel.films);
 // presenters
 const profilePresenter = new ProfilePresenter();
 const navigationPresenter = new NavigationPresenter({ navModel });

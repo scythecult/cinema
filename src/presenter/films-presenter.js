@@ -1,6 +1,7 @@
 import { SortType } from '../const';
 import { remove, render, RenderPosition } from '../framework/render';
-import { sortFilmsBy, updateItem } from '../utils';
+import { sortFilmsBy, updateItem } from '../utils/common';
+import { sortByRating, sortByReleaseDate } from '../utils/film';
 import FilmCardView from '../view/film-card-view';
 import FilmsContainerView from '../view/films-container-view';
 import FilmsExtraView from '../view/films-extra-view';
@@ -60,21 +61,13 @@ export default class FilmsPresenter {
 
     switch (newSortType) {
       case SortType.DEFAULT:
-        {
-          this.#filmItems = [...this.#filmSourceItems];
-        }
-
+        this.#filmItems = [...this.#filmSourceItems];
         break;
       case SortType.BY_DATE:
-        {
-          // eslint-disable-next-line no-console
-          console.log('by date');
-        }
+        this.#filmItems.sort(sortByReleaseDate);
         break;
       case SortType.BY_RATING:
-        {
-          this.#filmItems = sortFilmsBy(this.#filmItems, 'filmInfo', 'totalRating');
-        }
+        this.#filmItems.sort(sortByRating);
         break;
     }
   };
@@ -113,8 +106,7 @@ export default class FilmsPresenter {
   };
 
   #renderFilm = (film = {}) => {
-    this.#filmListContainer =
-      this.#filmsContainerComponent.element.querySelector('.films-list__container');
+    this.#filmListContainer = this.#filmsContainerComponent.element.querySelector('.films-list__container');
 
     const filmPresenter = new FilmPresenter({
       filmsListContainer: this.#filmListContainer,
@@ -173,8 +165,7 @@ export default class FilmsPresenter {
 
   #renderTopRated = () => {
     this.#filmsTopRatedComponent = new FilmsExtraView('Top Rated');
-    this.#filmsTopRatedContainer =
-      this.#filmsTopRatedComponent.element.querySelector('.films-list__container');
+    this.#filmsTopRatedContainer = this.#filmsTopRatedComponent.element.querySelector('.films-list__container');
     this.#topRatedFilms = sortFilmsBy(this.#filmItems, 'filmInfo', 'totalRating', 2);
 
     render(this.#filmsTopRatedComponent, this.#filmsContainerComponent.element);
@@ -183,8 +174,7 @@ export default class FilmsPresenter {
 
   #renderMostCommented = () => {
     this.#filmsMostCommentedComponent = new FilmsExtraView('Most Commented');
-    this.#filmsMostCommentedContainer =
-      this.#filmsMostCommentedComponent.element.querySelector('.films-list__container');
+    this.#filmsMostCommentedContainer = this.#filmsMostCommentedComponent.element.querySelector('.films-list__container');
     this.#mostCommentedFilms = sortFilmsBy(this.#filmItems, 'comments', 'length', 2);
 
     render(this.#filmsMostCommentedComponent, this.#filmsContainerComponent.element);
