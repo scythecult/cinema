@@ -34,6 +34,7 @@ export default class FilmsPresenter {
 
   #filmFiltersPresenter = null;
   #filmsContainerComponent = new FilmsContainerView();
+  #sortComponent = null;
   #filmsEmptyComponent = null;
   #showMoreButtonComponent = null;
   #filmsTopRatedComponent = null;
@@ -52,6 +53,7 @@ export default class FilmsPresenter {
 
   #handleFilmChange = (updatedFilm) => {
     this.#filmItems = updateItem(this.#filmItems, updatedFilm);
+    this.#filmSourceItems = updateItem(this.#filmSourceItems, updatedFilm);
     this.#filmPresenter.get(updatedFilm.id)?.init(updatedFilm);
     this.#popupPresenter.get(updatedFilm.id)?.init(updatedFilm);
   };
@@ -78,20 +80,25 @@ export default class FilmsPresenter {
     }
 
     this.#sortFilms(newSortType);
+    this.#updateSort();
     this.#clearFilmList();
     this.#renderFilmList();
     this.#renderShowMoreButton();
   };
 
-  #renderSort = () => {
-    render(
-      new SortView({
-        currentSortType: this.#currentSortType,
-        onSortTypeChange: this.#handleSortTypeChange,
-      }),
-      this.#filmsContainerComponent.element,
-      RenderPosition.BEFOREBEGIN
-    );
+  #updateSort = () => {
+    remove(this.#sortComponent);
+
+    this.#renderSort(this.#currentSortType);
+  };
+
+  #renderSort = (currentSortType) => {
+    this.#sortComponent = new SortView({
+      currentSortType,
+      onSortTypeChange: this.#handleSortTypeChange,
+    });
+
+    render(this.#sortComponent, this.#filmsContainerComponent.element, RenderPosition.BEFOREBEGIN);
   };
 
   #renderPopup = (film) => {
@@ -192,7 +199,7 @@ export default class FilmsPresenter {
       return;
     }
 
-    this.#renderSort();
+    this.#renderSort(this.#currentSortType);
     this.#renderFilmList();
     this.#renderTopRated();
     this.#renderMostCommented();
