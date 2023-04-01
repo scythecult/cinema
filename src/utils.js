@@ -26,5 +26,12 @@ const updateItem = (items = [], update = {}) => {
   return [...items.slice(0, index), update, ...items.slice(index + 1)];
 };
 
+const sortFilmsBy = (films, propA, propB, limit = films.length) =>
+  [...films]
+    .sort(
+      (filmA, filmB) => parseFloat(filmB[propA][propB], 10) - parseFloat(filmA[propA][propB], 10)
+    )
+    .slice(0, limit);
+
 const formatDate = (rawDate) => new Date(rawDate).getFullYear();
-export { getRandomInteger, formatDuration, formatDate, updateItem };
+export { getRandomInteger, formatDuration, formatDate, updateItem, sortFilmsBy };
