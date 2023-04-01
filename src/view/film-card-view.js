@@ -1,5 +1,5 @@
 import AbstractView from '../framework/view/abstract-view';
-import { formatDate, formatDuration } from '../utils';
+import { formatDate, formatDuration } from '../utils/film';
 
 const createFilmCardTemplate = (props = {}) => {
   const {
@@ -58,15 +58,9 @@ export default class FilmCardView extends AbstractView {
     this.#handleFavoriteClick = onFavoriteClick;
 
     this.element.addEventListener('click', this.#clickHandler);
-    this.element
-      .querySelector('.film-card__controls-item--add-to-watchlist')
-      .addEventListener('click', this.#addToWatchlistClick);
-    this.element
-      .querySelector('.film-card__controls-item--mark-as-watched')
-      .addEventListener('click', this.#addToWatchedClick);
-    this.element
-      .querySelector('.film-card__controls-item--favorite')
-      .addEventListener('click', this.#addToFavoriteClick);
+    this.element.querySelector('.film-card__controls-item--add-to-watchlist').addEventListener('click', this.#addToWatchlistClick);
+    this.element.querySelector('.film-card__controls-item--mark-as-watched').addEventListener('click', this.#addToWatchedClick);
+    this.element.querySelector('.film-card__controls-item--favorite').addEventListener('click', this.#addToFavoriteClick);
   }
 
   get template() {

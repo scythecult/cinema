@@ -1,6 +1,5 @@
 import FilmsModel from './model/film-model';
 import FilmsPresenter from './presenter/films-presenter';
-import FiltersModel from './model/filter-model';
 import NavModel from './model/navigarion-model';
 import NavigationPresenter from './presenter/navigation-presenter';
 import ProfilePresenter from './presenter/profile-presenter';
@@ -15,15 +14,12 @@ const footerContainer = document.querySelector('.footer');
 // models
 const filmsModel = new FilmsModel();
 const navModel = new NavModel();
-const filtersModel = new FiltersModel();
 const commentsModel = new CommentsModel();
-// views
-// eslint-disable-next-line no-console
-console.log(filmsModel.films);
+
 // presenters
 const profilePresenter = new ProfilePresenter();
 const navigationPresenter = new NavigationPresenter({ navModel });
-const filmsPresenter = new FilmsPresenter({ filmsModel, filtersModel, commentsModel });
+const filmsPresenter = new FilmsPresenter({ filmsModel, commentsModel });
 const statsPresenter = new StatsPresenter();
 
 profilePresenter.init(profileContainer);

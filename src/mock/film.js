@@ -1,4 +1,4 @@
-import { getRandomInteger } from '../utils';
+import { getRandomInteger } from '../utils/common';
 import { COMMENTS } from './comments';
 
 const filmInfos = [
@@ -17,8 +17,7 @@ const filmInfos = [
     },
     runtime: 77,
     genre: ['Comedy'],
-    description:
-      'Oscar-winning film, a war drama about two young people, from the creators of timeless classic "Nu, Pogodi!" and "Alice in Wonderland", with the best fight scenes since Bruce Lee.',
+    description: 'Oscar-winning film, a war drama about two young people, from the creators of timeless classic "Nu, Pogodi!" and "Alice in Wonderland", with the best fight scenes since Bruce Lee.',
   },
   {
     title: 'The Dance of Life',
@@ -35,8 +34,7 @@ const filmInfos = [
     },
     runtime: 120,
     genre: ['Musical'],
-    description:
-      'Burlesque comic Ralph "Skid" Johnson (Skelly), and specialty dancer Bonny Lee King (Carroll), end up together on a cold, rainy night at a tr…',
+    description: 'Burlesque comic Ralph "Skid" Johnson (Skelly), and specialty dancer Bonny Lee King (Carroll), end up together on a cold, rainy night at a tr…',
   },
   {
     title: 'Sagebrush Trail',
@@ -53,8 +51,7 @@ const filmInfos = [
     },
     runtime: 100,
     genre: ['Western'],
-    description:
-      'Sentenced for a murder he did not commit, John Brant escapes from prison determined to find the real killer. By chance Brants narrow escap…',
+    description: 'Sentenced for a murder he did not commit, John Brant escapes from prison determined to find the real killer. By chance Brants narrow escap…',
   },
   {
     title: 'Santa Claus Conquers the Martians',
@@ -71,8 +68,7 @@ const filmInfos = [
     },
     runtime: 14,
     genre: ['Comedy'],
-    description:
-      'The Martians Momar ("Mom Martian") and Kimar ("King Martian") are worried that their children Girmar ("Girl Martian") and Bomar ("Boy Marti…',
+    description: 'The Martians Momar ("Mom Martian") and Kimar ("King Martian") are worried that their children Girmar ("Girl Martian") and Bomar ("Boy Marti…',
   },
 ];
 
@@ -83,8 +79,7 @@ const generateUserDetails = () => ({
   favorite: Boolean(getRandomInteger(0, 1)),
 });
 
-const generateComments = () =>
-  COMMENTS.map((comment) => comment.id).slice(0, getRandomInteger(0, COMMENTS.length));
+const generateComments = () => COMMENTS.map((comment) => comment.id).slice(0, getRandomInteger(0, COMMENTS.length));
 
 const makeIdGenerator = () => {
   let count = 0;
