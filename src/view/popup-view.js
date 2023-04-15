@@ -239,6 +239,7 @@ export default class PopupView extends AbstractStatefulView {
     const film = { ...state };
 
     delete film.commentInfo;
+    delete film.prevScrollValue;
 
     return film;
   };
@@ -318,8 +319,10 @@ export default class PopupView extends AbstractStatefulView {
         commentInfo: { ...this._state.commentInfo, id: `${currentId}` },
       });
 
-      this.#changeCommentsData(this._state.commentInfo, PopupView.convertStateToFilm(this._state));
-      this.#changeData(PopupView.convertStateToFilm(this._state));
+      const filmInfo = PopupView.convertStateToFilm(this._state);
+
+      this.#changeCommentsData(this._state.commentInfo, filmInfo);
+      this.#changeData(filmInfo);
       this.#updateScrollPosition();
     }
   };
