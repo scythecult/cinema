@@ -79,7 +79,7 @@ const generateUserDetails = () => ({
   favorite: Boolean(getRandomInteger(0, 1)),
 });
 
-const generateComments = () => COMMENTS.map((comment) => comment.id).slice(0, getRandomInteger(0, COMMENTS.length));
+const generateCommentIds = () => COMMENTS.map((comment) => comment.id).slice(0, getRandomInteger(0, COMMENTS.length));
 
 const makeIdGenerator = () => {
   let count = 0;
@@ -91,13 +91,13 @@ const generateId = makeIdGenerator();
 
 const generateFilmInfo = () => {
   const filmInfo = filmInfos[getRandomInteger(0, filmInfos.length - 1)];
-  const comments = generateComments();
+  const commentIds = generateCommentIds();
   const userDetails = generateUserDetails();
   const id = generateId();
 
   return {
     id,
-    comments,
+    commentIds,
     filmInfo,
     userDetails,
   };
