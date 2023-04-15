@@ -2,14 +2,15 @@ import { SortType } from '../const';
 import { remove, render, RenderPosition } from '../framework/render';
 import { sortFilmsBy, updateItem } from '../utils/common';
 import { sortByRating, sortByReleaseDate } from '../utils/film';
-import FilmCardView from '../view/film-card-view';
+// import FilmCardView from '../view/film-card-view';
 import FilmsContainerView from '../view/films-container-view';
 import FilmsExtraView from '../view/films-extra-view';
 import EmptyListView from '../view/list-empty-view';
+import PopupView from '../view/popup-view';
 import ShowMoreButtonView from '../view/show-more-button-view';
 import SortView from '../view/sort-view';
 import FilmPresenter from './film-presenter';
-import PopupPresenter from './popup-presenter';
+// import PopupPresenter from './popup-presenter';
 
 const FILM_COUNT_PER_STEP = 5;
 export default class FilmsPresenter {
@@ -19,7 +20,6 @@ export default class FilmsPresenter {
   #filmItems = null;
   #filmSourceItems = null;
   #filmPresenter = new Map();
-  #popupPresenter = new Map();
   #commentItems = null;
 
   #popupContainer = document.body;
@@ -39,6 +39,7 @@ export default class FilmsPresenter {
   #showMoreButtonComponent = null;
   #filmsTopRatedComponent = null;
   #filmsMostCommentedComponent = null;
+  #popupComponent = null;
 
   #currentSortType = SortType.DEFAULT;
 
@@ -55,7 +56,6 @@ export default class FilmsPresenter {
     this.#filmItems = updateItem(this.#filmItems, updatedFilm);
     this.#filmSourceItems = updateItem(this.#filmSourceItems, updatedFilm);
     this.#filmPresenter.get(updatedFilm.id)?.init(updatedFilm);
-    this.#popupPresenter.get(updatedFilm.id)?.init(updatedFilm);
   };
 
   #sortFilms = (newSortType) => {
@@ -101,22 +101,41 @@ export default class FilmsPresenter {
     render(this.#sortComponent, this.#filmsContainerComponent.element, RenderPosition.BEFOREBEGIN);
   };
 
-  #renderPopup = (film) => {
-    const popupPresenter = new PopupPresenter({
-      popupContainer: this.#popupContainer,
-      comments: this.#commentItems,
-      changeData: this.#handleFilmChange,
-    });
-
-    popupPresenter.init(film);
-    this.#popupPresenter.set(film.id, popupPresenter);
+  #handleCloseClick = () => {
+    this.#removePopup();
   };
 
-  #renderFilm = (film = {}) => {
-    this.#filmListContainer = this.#filmsContainerComponent.element.querySelector('.films-list__container');
+  #handleCommentsChange = (newComment = {}, film = {}) => {
+    this.#commentItems = [...this.#commentItems, newComment];
 
+    this.#removePopup();
+    this.#renderPopup(film);
+  };
+
+  #removePopup = () => {
+    this.#popupComponent.removeOverflow();
+
+    remove(this.#popupComponent);
+  };
+
+  #renderPopup = (film) => {
+    this.#popupComponent = new PopupView({
+      film,
+      comments: this.#commentItems,
+      onCloseClick: this.#handleCloseClick,
+      onKeydown: this.#handleCloseClick,
+      changeData: this.#handleFilmChange,
+      changeCommentsData: this.#handleCommentsChange,
+    });
+
+    this.#popupComponent.addOverflow();
+
+    render(this.#popupComponent, this.#popupContainer);
+  };
+
+  #renderFilm = (film = {}, container = {}) => {
     const filmPresenter = new FilmPresenter({
-      filmsListContainer: this.#filmListContainer,
+      filmsListContainer: container,
       changeData: this.#handleFilmChange,
       renderPopup: this.#renderPopup,
     });
@@ -126,7 +145,7 @@ export default class FilmsPresenter {
   };
 
   #renderFilms = (from, to) => {
-    this.#filmItems.slice(from, to).forEach((film) => this.#renderFilm(film));
+    this.#filmItems.slice(from, to).forEach((film) => this.#renderFilm(film, this.#filmListContainer));
   };
 
   #renderFilmList = () => {
@@ -149,7 +168,7 @@ export default class FilmsPresenter {
 
   #renderExtraFilms = (extraInfo = [], container = {}) => {
     for (const extra of extraInfo) {
-      render(new FilmCardView({ film: extra }), container);
+      this.#renderFilm(extra, container);
     }
   };
 
@@ -181,8 +200,9 @@ export default class FilmsPresenter {
 
   #renderMostCommented = () => {
     this.#filmsMostCommentedComponent = new FilmsExtraView('Most Commented');
-    this.#filmsMostCommentedContainer = this.#filmsMostCommentedComponent.element.querySelector('.films-list__container');
-    this.#mostCommentedFilms = sortFilmsBy(this.#filmItems, 'comments', 'length', 2);
+    this.#filmsMostCommentedContainer =
+      this.#filmsMostCommentedComponent.element.querySelector('.films-list__container');
+    this.#mostCommentedFilms = sortFilmsBy(this.#filmItems, 'commentIds', 'length', 2);
 
     render(this.#filmsMostCommentedComponent, this.#filmsContainerComponent.element);
     this.#renderExtraFilms(this.#mostCommentedFilms, this.#filmsMostCommentedContainer);
@@ -190,6 +210,7 @@ export default class FilmsPresenter {
 
   init = (container) => {
     this.#filmList = this.#filmsContainerComponent.element.querySelector('.films-list');
+    this.#filmListContainer = this.#filmsContainerComponent.element.querySelector('.films-list__container');
 
     render(this.#filmsContainerComponent, container);
 

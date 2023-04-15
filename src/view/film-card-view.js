@@ -11,7 +11,7 @@ const createFilmCardTemplate = (props = {}) => {
     poster = '',
     description = '',
   } = props.filmInfo;
-  const { id, comments = [] } = props;
+  const { id, commentIds = [] } = props;
   const { alreadyWatched = false, favorite = false, watchlist = false } = props.userDetails;
 
   const watchListClass = watchlist ? 'film-card__controls-item--active' : '';
@@ -32,7 +32,7 @@ const createFilmCardTemplate = (props = {}) => {
     </p>
     <img src="${poster}" alt="${title}" class="film-card__poster">
     <p class="film-card__description">${description}</p>
-    <span class="film-card__comments">${comments?.length} comments</span>
+    <span class="film-card__comments">${commentIds?.length} comments</span>
   </a>
   <div class="film-card__controls">
     <button class="film-card__controls-item film-card__controls-item--add-to-watchlist ${watchListClass}" type="button">Add to watchlist</button>
