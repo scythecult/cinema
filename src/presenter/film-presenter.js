@@ -1,3 +1,4 @@
+import { UpdateType, UserActions } from '../const';
 import { remove, render, replace } from '../framework/render';
 import FilmCardView from '../view/film-card-view';
 
@@ -20,7 +21,7 @@ export default class FilmPresenter {
   };
 
   #handleWatchlistClick = () => {
-    this.#changeData({
+    this.#changeData(UserActions.UPDATE, UpdateType.PATCH, {
       ...this.#film,
       userDetails: {
         ...this.#film.userDetails,
@@ -30,7 +31,7 @@ export default class FilmPresenter {
   };
 
   #handleWatchedClick = () => {
-    this.#changeData({
+    this.#changeData(UserActions.UPDATE, UpdateType.PATCH, {
       ...this.#film,
       userDetails: {
         ...this.#film.userDetails,
@@ -40,7 +41,7 @@ export default class FilmPresenter {
   };
 
   #handleFavoriteClick = () => {
-    this.#changeData({
+    this.#changeData(UserActions.UPDATE, UpdateType.PATCH, {
       ...this.#film,
       userDetails: {
         ...this.#film.userDetails,

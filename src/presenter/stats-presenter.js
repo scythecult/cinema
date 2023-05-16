@@ -3,8 +3,13 @@ import StatsView from '../view/stats-view';
 
 export default class StatsPresenter {
   #movieCount = '2000';
+  #statsContainer = null;
 
-  init = (container) => {
-    render(new StatsView(this.#movieCount), container);
+  constructor({ container }) {
+    this.#statsContainer = container;
+  }
+
+  init = () => {
+    render(new StatsView(this.#movieCount), this.#statsContainer);
   };
 }
