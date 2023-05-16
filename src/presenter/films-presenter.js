@@ -1,5 +1,5 @@
-import { Mode, SortType, UpdateType, UserActions } from '../const';
-import { remove, render, RenderPosition } from '../framework/render';
+import { FilterType, Mode, SortType, StubText, UpdateType, UserActions } from '../const';
+import { remove, render, RenderPosition, replace } from '../framework/render';
 import { sortFilmsBy } from '../utils/common';
 import { sortByRating, sortByReleaseDate } from '../utils/film';
 import { filter } from '../utils/filter';
@@ -59,9 +59,7 @@ export default class FilmsPresenter {
   }
 
   get films() {
-    const filterType = this.#filterModel.filter;
-    const films = this.#filmsModel.films;
-    const filteredFilms = filter[filterType](films);
+    const filteredFilms = this.#getFilteredFilms();
 
     switch (this.#currentSortType) {
       case SortType.BY_DATE:
@@ -76,6 +74,13 @@ export default class FilmsPresenter {
   get scrollPosition() {
     return this.#scrollPosition;
   }
+
+  #getFilteredFilms = () => {
+    const filterType = this.#filterModel.filter;
+    const films = this.#filmsModel.films;
+
+    return filter[filterType](films);
+  };
 
   updateScrollPosition(newPosition) {
     this.#scrollPosition = newPosition;
@@ -116,6 +121,7 @@ export default class FilmsPresenter {
       case UpdateType.MAJOR:
         this.#clearFilmList();
         this.#renderFilmList();
+        this.#renderStub();
         break;
     }
   };
@@ -210,9 +216,37 @@ export default class FilmsPresenter {
   };
 
   #renderStub = () => {
-    this.#filmsEmptyComponent = new EmptyListView();
+    const filteredFilms = this.#getFilteredFilms();
+    let textContent = '';
 
-    render(this.#filmsEmptyComponent, this.#filmList, RenderPosition.AFTERBEGIN);
+    switch (this.#filterModel.filter) {
+      case FilterType.WATCHLIST:
+        if (!filteredFilms.length) {
+          textContent = StubText.WATCHLIST;
+        }
+        break;
+      case FilterType.HISTORY:
+        if (!filteredFilms.length) {
+          textContent = StubText.HISTORY;
+        }
+        break;
+      case FilterType.FAVORITE:
+        if (!filteredFilms.length) {
+          textContent = StubText.FAVORITES;
+        }
+        break;
+    }
+
+    const prevfilmsEmptyComponent = this.#filmsEmptyComponent;
+    this.#filmsEmptyComponent = new EmptyListView(textContent);
+
+    if (prevfilmsEmptyComponent === null) {
+      render(this.#filmsEmptyComponent, this.#filmList, RenderPosition.AFTERBEGIN);
+      return;
+    }
+
+    replace(this.#filmsEmptyComponent, prevfilmsEmptyComponent);
+    remove(prevfilmsEmptyComponent);
   };
 
   #renderShowMoreButton = () => {
@@ -269,7 +303,6 @@ export default class FilmsPresenter {
 
     if (!this.films.length) {
       this.#renderStub();
-
       return;
     }
 

@@ -1,10 +1,15 @@
 import AbstractView from '../framework/view/abstract-view';
 
-const createEmptyListTemplate = () =>
-  '<h2 class="films-list__title">There are no movies in our database</h2>';
+const createEmptyListTemplate = (textContent) => `<h2 class="films-list__title">${textContent}</h2>`;
 
 export default class EmptyListView extends AbstractView {
+  #textContent = '';
+  constructor(textContent = 'There are no movies in our database') {
+    super();
+    this.#textContent = textContent;
+  }
+
   get template() {
-    return createEmptyListTemplate();
+    return createEmptyListTemplate(this.#textContent);
   }
 }
