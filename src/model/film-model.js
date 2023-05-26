@@ -19,4 +19,38 @@ export default class FilmsModel extends Observable {
 
     this._notify(updateType, update);
   };
+
+  addComment = (updateType, update) => {
+    const { film: currentFilm, comment } = update;
+    const filmIndex = this.films.findIndex((film) => film.id === currentFilm.id);
+
+    if (filmIndex !== -1) {
+      const targetFilm = this.films[filmIndex];
+      const updatedFilm = {
+        ...targetFilm,
+        commentIds: [...targetFilm.commentIds, comment.id],
+      };
+
+      this.films[filmIndex] = updatedFilm;
+
+      this._notify(updateType, updatedFilm);
+    }
+  };
+
+  removeComment = (updateType, update) => {
+    const { film: currentFilm, commentId } = update;
+    const filmIndex = this.films.findIndex((film) => film.id === currentFilm.id);
+
+    if (filmIndex !== -1) {
+      const targetFilm = this.films[filmIndex];
+      const updatedFilm = {
+        ...targetFilm,
+        commentIds: targetFilm.commentIds.filter((id) => id !== commentId),
+      };
+
+      this.films[filmIndex] = updatedFilm;
+
+      this._notify(updateType, updatedFilm);
+    }
+  };
 }

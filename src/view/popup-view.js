@@ -99,6 +99,7 @@ const createFilmDetailsControlsTemplate = (props = {}) => {
 
 const createCommentTemplate = (props = {}) => {
   const {
+    id,
     emotion = 'smile',
     comment = 'Interesting setting and a good cast',
     author = 'Tim Macoveev',
@@ -106,7 +107,7 @@ const createCommentTemplate = (props = {}) => {
   } = props;
   const formattedDate = formatDate(date);
 
-  return `<li class="film-details__comment">
+  return `<li class="film-details__comment" >
 <span class="film-details__comment-emoji">
   <img src="./images/emoji/${emotion}.png" width="55" height="55" alt="${emotion}">
 </span>
@@ -115,7 +116,7 @@ const createCommentTemplate = (props = {}) => {
   <p class="film-details__comment-info">
     <span class="film-details__comment-author">${author}</span>
     <span class="film-details__comment-day">${formattedDate}</span>
-    <button class="film-details__comment-delete">Delete</button>
+    <button class="film-details__comment-delete" data-id=${id}>Delete</button>
   </p>
 </div>
 </li>`;
@@ -131,11 +132,8 @@ const createCommentEmojiTemplate = () =>
   </label>`
   ).join('\n');
 
-const createIconEmojiTemplate = (emotion = 'smile') => {
-  // eslint-disable-next-line no-console
-  console.log(emotion);
-  return `<img src="images/emoji/${emotion}.png" width="55" height="55" alt="emoji-smile">`;
-};
+const createIconEmojiTemplate = (emotion = 'smile') =>
+  `<img src="images/emoji/${emotion}.png" width="55" height="55" alt="emoji-smile">`;
 
 const createNewCommentFormTemplate = ({ comment = '', emotion = 'smile' }) => {
   const emotionsTemplate = createCommentEmojiTemplate();
@@ -213,36 +211,20 @@ const createPopupTemplate = ({ film = {}, comments = [] } = {}) => {
 
 let commentId = 101;
 export default class PopupView extends AbstractStatefulView {
-  #comments = null;
   #currentFilmComments = null;
   #scrollPosition = 0;
 
   #changeData = null;
-  #changeCommentsData = null;
   #handleCloseClick = null;
   #handleKeydown = null;
-  #updateScrollPosition = null;
 
-  constructor({
-    film,
-    comments,
-    scrollPosition,
-    onCloseClick,
-    onKeydown,
-    changeData,
-    changeCommentsData,
-    updateScrollPosition,
-  }) {
+  constructor({ film, comments, onCloseClick, onKeydown, changeData }) {
     super();
-    this._state = PopupView.convertFilmToState(film);
-    this.#scrollPosition = scrollPosition;
-    this.#comments = comments;
-    this.#currentFilmComments = getCurrentFilmComments(this._state.commentIds, this.#comments);
+    this._state = PopupView.convertFilmToState({ ...film, comments });
+    this.#currentFilmComments = getCurrentFilmComments(this._state.commentIds, this._state.comments);
     this.#handleCloseClick = onCloseClick;
     this.#handleKeydown = onKeydown;
     this.#changeData = changeData;
-    this.#changeCommentsData = changeCommentsData;
-    this.#updateScrollPosition = updateScrollPosition;
 
     this._commentText = null;
     this._selectedSmile = null;
@@ -251,15 +233,15 @@ export default class PopupView extends AbstractStatefulView {
     this.#setScrollPosition();
   }
 
-  static convertFilmToState = (film) => ({ ...film, commentInfo: { comment: '', emotion: '' } });
+  static convertFilmToState = (info) => ({ ...info, commentInfo: { comment: '', emotion: '' } });
 
   static convertStateToFilm = (state) => {
-    const film = { ...state };
+    const info = { ...state };
 
-    delete film.commentInfo;
-    delete film.prevScrollValue;
+    delete info.comments;
+    delete info.commentInfo;
 
-    return film;
+    return info;
   };
 
   get template() {
@@ -278,6 +260,10 @@ export default class PopupView extends AbstractStatefulView {
     document.body.classList.remove('hide-overflow');
   };
 
+  #updateScrollPosition = (newPosition) => {
+    this.#scrollPosition = newPosition;
+  };
+
   #setInnerHandlers = () => {
     document.addEventListener('keydown', this.#keydownHandler);
     this.element.addEventListener('click', this.#closeClickHandler);
@@ -287,12 +273,13 @@ export default class PopupView extends AbstractStatefulView {
     this.element.querySelector('.film-details__new-comment').addEventListener('keydown', this.#handleCommentSubmit);
     this.element.querySelector('.film-details__comment-input').addEventListener('input', this.#handleCommentInput);
     this.element.querySelector('.film-details__emoji-list').addEventListener('click', this.#handleEmojiClick);
+    this.element
+      .querySelector('.film-details__comments-list')
+      .addEventListener('click', this.#handleCommentDeleteClick);
   };
 
   #setScrollPosition = () => {
-    requestAnimationFrame(() => {
-      this.element.querySelector('.film-details').scrollTop = this.#scrollPosition;
-    });
+    this.element.querySelector('.film-details').scrollTop = this.#scrollPosition;
   };
 
   #markEmojiAsChecked = () => {
@@ -301,6 +288,18 @@ export default class PopupView extends AbstractStatefulView {
     }
 
     this.element.querySelector(`#emoji-${this._state.commentInfo.emotion}`).checked = true;
+  };
+
+  #handleCommentDeleteClick = (evt) => {
+    const deleteElement = evt.target.closest('.film-details__comment-delete');
+
+    if (!deleteElement) {
+      return;
+    }
+    const { id } = deleteElement.dataset;
+    const filmInfo = PopupView.convertStateToFilm(this._state);
+
+    this.#changeData(UserActions.DELETE_COMMENT, UpdateType.MINOR, { commentId: +id, film: filmInfo });
   };
 
   #handleEmojiClick = (evt) => {
@@ -316,33 +315,34 @@ export default class PopupView extends AbstractStatefulView {
 
     this._selectedSmile = currentInput.value;
 
+    this.#updateScrollPosition(this.element.querySelector('.film-details').scrollTop);
     this.updateElement({
       commentInfo: { ...this._state.commentInfo, emotion: currentInput.value },
     });
-    this.#markEmojiAsChecked();
-    this.#updateScrollPosition(this.element.querySelector('.film-details').scrollTop);
     this.#setScrollPosition();
+    this.#markEmojiAsChecked();
   };
 
   #handleCommentSubmit = (evt) => {
     if (evt.code === 'Enter' && (evt.ctrlKey || evt.metaKey)) {
       const currentId = commentId++;
 
-      this.#updateScrollPosition(this.element.querySelector('.film-details').scrollTop);
-
-      if (!this._commentText && !this._selectedSmile) {
+      if (!this._commentText || !this._selectedSmile) {
         return;
       }
 
-      this.updateElement({
-        commentIds: [...this._state.commentIds, `${currentId}`],
-        commentInfo: { ...this._state.commentInfo, id: `${currentId}` },
-      });
+      this.#updateScrollPosition(this.element.querySelector('.film-details').scrollTop);
+      // this.updateElement({
+      //   commentIds: [...this._state.commentIds, currentId],
+      //   commentInfo: { ...this._state.commentInfo, id: currentId },
+      // });
 
       const filmInfo = PopupView.convertStateToFilm(this._state);
+      const updatedFilmInfo = { ...filmInfo, commentIds: [...filmInfo.commentIds, currentId] };
+      const newComment = { ...this._state.commentInfo, id: currentId };
 
-      this.#changeCommentsData(this._state.commentInfo, filmInfo);
-      this.#changeData(UserActions.UPDATE, UpdateType.PATCH, filmInfo);
+      this.#changeData(UserActions.ADD_COMMENT, UpdateType.MINOR, { comment: newComment, film: updatedFilmInfo });
+      this.#setScrollPosition();
     }
   };
 
@@ -364,6 +364,8 @@ export default class PopupView extends AbstractStatefulView {
         watchlist: !this._state.userDetails.watchlist,
       },
     });
+
+    this.#setScrollPosition();
     this.#markEmojiAsChecked();
     this.#changeData(UserActions.UPDATE, UpdateType.PATCH, PopupView.convertStateToFilm(this._state));
   };
@@ -380,6 +382,7 @@ export default class PopupView extends AbstractStatefulView {
       },
     });
 
+    this.#setScrollPosition();
     this.#markEmojiAsChecked();
     this.#changeData(UserActions.UPDATE, UpdateType.PATCH, PopupView.convertStateToFilm(this._state));
   };
@@ -395,8 +398,9 @@ export default class PopupView extends AbstractStatefulView {
         favorite: !this._state.userDetails.favorite,
       },
     });
-    this.#markEmojiAsChecked();
 
+    this.#setScrollPosition();
+    this.#markEmojiAsChecked();
     this.#changeData(UserActions.UPDATE, UpdateType.PATCH, PopupView.convertStateToFilm(this._state));
   };
 

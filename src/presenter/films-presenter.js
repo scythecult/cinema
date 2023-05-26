@@ -1,11 +1,11 @@
-import { FilterType, Mode, SortType, StubText, UpdateType, UserActions } from '../const';
+import { FilterType, SortType, StubText, UpdateType, UserActions } from '../const';
 import { remove, render, RenderPosition, replace } from '../framework/render';
 import { sortFilmsBy } from '../utils/common';
 import { sortByRating, sortByReleaseDate } from '../utils/film';
 import { filter } from '../utils/filter';
 import FilmsContainerView from '../view/films-container-view';
 import FilmsExtraView from '../view/films-extra-view';
-import EmptyListView from '../view/list-empty-view';
+import StubView from '../view/stub-view';
 import PopupView from '../view/popup-view';
 import ShowMoreButtonView from '../view/show-more-button-view';
 import SortView from '../view/sort-view';
@@ -13,15 +13,11 @@ import FilmPresenter from './film-presenter';
 
 const FILM_COUNT_PER_STEP = 5;
 export default class FilmsPresenter {
-  #MODE = Mode.DEFAULT;
-  #scrollPosition = 0;
   #filmsModel = null;
   #filterModel = null;
   #commentsModel = null;
   #filmItems = null;
-  #filmSourceItems = null;
   #filmPresenter = new Map();
-  #commentItems = null;
 
   #popupContainer = document.body;
   #filmList = null;
@@ -36,7 +32,7 @@ export default class FilmsPresenter {
   #mainContainer = null;
   #filmsContainerComponent = new FilmsContainerView();
   #sortComponent = null;
-  #filmsEmptyComponent = null;
+  #stubComponent = null;
   #showMoreButtonComponent = null;
   #filmsTopRatedComponent = null;
   #filmsMostCommentedComponent = null;
@@ -53,9 +49,11 @@ export default class FilmsPresenter {
 
     this.#filmsModel.addObserver(this.#handleModelEvent);
     this.#filterModel.addObserver(this.#handleModelEvent);
-    this.#commentItems = [...this.#commentsModel.comments];
+    this.#commentsModel.addObserver(this.#handleModelEvent);
+  }
 
-    this.updateScrollPosition = this.updateScrollPosition.bind(this);
+  get comments() {
+    return this.#commentsModel.comments;
   }
 
   get films() {
@@ -71,10 +69,6 @@ export default class FilmsPresenter {
     return filteredFilms;
   }
 
-  get scrollPosition() {
-    return this.#scrollPosition;
-  }
-
   #getFilteredFilms = () => {
     const filterType = this.#filterModel.filter;
     const films = this.#filmsModel.films;
@@ -82,22 +76,17 @@ export default class FilmsPresenter {
     return filter[filterType](films);
   };
 
-  updateScrollPosition(newPosition) {
-    this.#scrollPosition = newPosition;
-  }
-
   #handleViewAction = (actionType, updateType, update) => {
     switch (actionType) {
       case UserActions.UPDATE:
         this.#filmsModel.update(updateType, update);
         break;
       case UserActions.ADD_COMMENT:
-        // eslint-disable-next-line no-console
-        console.log('comment model action add');
+        this.#filmsModel.addComment(updateType, update);
+        this.#commentsModel.addComment(updateType, update);
         break;
       case UserActions.DELETE_COMMENT:
-        // eslint-disable-next-line no-console
-        console.log('comment model action delete');
+        this.#filmsModel.removeComment(updateType, update);
         break;
     }
   };
@@ -105,17 +94,19 @@ export default class FilmsPresenter {
   #handleModelEvent = (updateType, data) => {
     switch (updateType) {
       case UpdateType.PATCH:
-        if (this.#MODE === Mode.POPUP) {
-          this.#removePopup();
-          this.#renderPopup(data);
+        if (FilterType.ALL !== this.#filterModel.filter) {
+          this.#clearFilmList();
+          this.#renderFilmList();
+          this.#renderStub();
         }
 
         this.#filmPresenter.get(data.id).init(data);
         break;
 
       case UpdateType.MINOR:
-        // eslint-disable-next-line no-console
-        console.log('update then delete comment');
+        this.#removePopup();
+        this.#renderPopup(data);
+        this.#filmPresenter.get(data.id).init(data);
         break;
 
       case UpdateType.MAJOR:
@@ -141,32 +132,19 @@ export default class FilmsPresenter {
     this.#removePopup();
   };
 
-  #handleCommentsChange = (newComment = {}, film = {}) => {
-    this.#commentItems = [...this.#commentItems, newComment];
-
-    this.#removePopup();
-    this.#renderPopup(film);
-  };
-
   #removePopup = () => {
-    this.#MODE = Mode.DEFAULT;
     this.#popupComponent.removeOverflow();
 
     remove(this.#popupComponent);
   };
 
   #renderPopup = (film) => {
-    this.#MODE = Mode.POPUP;
-
     this.#popupComponent = new PopupView({
       film,
-      comments: this.#commentItems,
-      scrollPosition: this.scrollPosition,
+      comments: this.comments,
       onCloseClick: this.#handleCloseClick,
       onKeydown: this.#handleCloseClick,
       changeData: this.#handleViewAction,
-      updateScrollPosition: this.updateScrollPosition,
-      changeCommentsData: this.#handleCommentsChange,
     });
 
     this.#popupComponent.addOverflow();
@@ -190,8 +168,8 @@ export default class FilmsPresenter {
       renderPopup: this.#renderPopup,
     });
 
-    filmPresenter.init(film);
     this.#filmPresenter.set(film.id, filmPresenter);
+    filmPresenter.init(film);
   };
 
   #renderFilms = (films) => {
@@ -237,16 +215,16 @@ export default class FilmsPresenter {
         break;
     }
 
-    const prevfilmsEmptyComponent = this.#filmsEmptyComponent;
-    this.#filmsEmptyComponent = new EmptyListView(textContent);
+    const prevStubComponent = this.#stubComponent;
+    this.#stubComponent = new StubView(textContent);
 
-    if (prevfilmsEmptyComponent === null) {
-      render(this.#filmsEmptyComponent, this.#filmList, RenderPosition.AFTERBEGIN);
+    if (prevStubComponent === null) {
+      render(this.#stubComponent, this.#filmList, RenderPosition.AFTERBEGIN);
       return;
     }
 
-    replace(this.#filmsEmptyComponent, prevfilmsEmptyComponent);
-    remove(prevfilmsEmptyComponent);
+    replace(this.#stubComponent, prevStubComponent);
+    remove(prevStubComponent);
   };
 
   #renderShowMoreButton = () => {
