@@ -98,6 +98,8 @@ export default class FilmsPresenter {
           this.#clearFilmList();
           this.#renderFilmList();
           this.#renderStub();
+
+          return;
         }
 
         this.#filmPresenter.get(data.id).init(data);
@@ -213,6 +215,10 @@ export default class FilmsPresenter {
           textContent = StubText.FAVORITES;
         }
         break;
+    }
+
+    if (!textContent) {
+      return;
     }
 
     const prevStubComponent = this.#stubComponent;
