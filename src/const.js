@@ -9,7 +9,7 @@ const FilterType = {
 
 const Mode = {
   DEFAULT: 'default',
-  POPUP: 'popup',
+  DETAILS: 'details',
 };
 
 const SortType = {

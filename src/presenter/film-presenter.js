@@ -1,26 +1,34 @@
-import { UpdateType, UserActions } from '../const';
+import { Mode, UpdateType, UserActions } from '../const';
 import { remove, render, replace } from '../framework/render';
 import FilmCardView from '../view/film-card-view';
+import DetailsView from '../view/film-details-view';
 
 export default class FilmPresenter {
-  #filmListContainer = null;
+  #detailsContainer = document.body;
+  #listContainer = null;
   #film = null;
   #filmComponent = null;
+  #detailsComponent = null;
 
   #changeData = null;
-  #renderPopup = null;
 
-  constructor({ filmsListContainer, changeData, renderPopup }) {
-    this.#filmListContainer = filmsListContainer;
+  #scrollPosition = 0;
+  #MODE = Mode.DEFAULT;
+
+  constructor({ filmsListContainer, changeData }) {
+    this.#listContainer = filmsListContainer;
     this.#changeData = changeData;
-    this.#renderPopup = renderPopup;
   }
 
-  // #handleCardClick = () => {
-  //   this.#renderPopup(this.#film);
-  // };
+  #updateScrollPosition = () => {
+    if (this.#MODE === Mode.DETAILS) {
+      this.#scrollPosition = this.#detailsComponent.getScrollPosition();
+    }
+  };
 
   #handleWatchlistClick = () => {
+    this.#updateScrollPosition();
+
     this.#changeData(UserActions.UPDATE, UpdateType.PATCH, {
       ...this.#film,
       userDetails: {
@@ -31,6 +39,8 @@ export default class FilmPresenter {
   };
 
   #handleWatchedClick = () => {
+    this.#updateScrollPosition();
+
     this.#changeData(UserActions.UPDATE, UpdateType.PATCH, {
       ...this.#film,
       userDetails: {
@@ -41,6 +51,8 @@ export default class FilmPresenter {
   };
 
   #handleFavoriteClick = () => {
+    this.#updateScrollPosition();
+
     this.#changeData(UserActions.UPDATE, UpdateType.PATCH, {
       ...this.#film,
       userDetails: {
@@ -50,30 +62,71 @@ export default class FilmPresenter {
     });
   };
 
-  init = (film) => {
-    this.#film = film;
+  #renderDetails = () => {
+    this.#MODE = Mode.DETAILS;
 
-    const prevFilmComponent = this.#filmComponent;
-
-    this.#filmComponent = new FilmCardView({
+    this.#detailsComponent = new DetailsView({
       film: this.#film,
-      // onCardClick: this.#handleCardClick,
+      scrollPosition: this.#scrollPosition,
+      onCloseClick: this.#removeDetails,
+      onKeydown: this.#removeDetails,
       onWatchlistClick: this.#handleWatchlistClick,
       onWatchedClick: this.#handleWatchedClick,
       onFavoriteClick: this.#handleFavoriteClick,
     });
 
-    if (prevFilmComponent === null) {
-      render(this.#filmComponent, this.#filmListContainer);
+    this.#detailsComponent.addOverflow();
+    render(this.#detailsComponent, this.#detailsContainer);
+  };
+
+  #removeDetails = () => {
+    this.#MODE = Mode.DEFAULT;
+
+    this.#detailsComponent.removeOverflow();
+    remove(this.#detailsComponent);
+  };
+
+  init = (film) => {
+    this.#film = film;
+
+    const prevFilmComponent = this.#filmComponent;
+    const prevDetailsComponent = this.#detailsComponent;
+
+    this.#filmComponent = new FilmCardView({
+      film: this.#film,
+      onCardClick: this.#renderDetails,
+      onWatchlistClick: this.#handleWatchlistClick,
+      onWatchedClick: this.#handleWatchedClick,
+      onFavoriteClick: this.#handleFavoriteClick,
+    });
+
+    this.#detailsComponent = new DetailsView({
+      film: this.#film,
+      scrollPosition: this.#scrollPosition,
+      onCloseClick: this.#removeDetails,
+      onKeydown: this.#removeDetails,
+      onWatchlistClick: this.#handleWatchlistClick,
+      onWatchedClick: this.#handleWatchedClick,
+      onFavoriteClick: this.#handleFavoriteClick,
+    });
+
+    if (prevFilmComponent === null || prevDetailsComponent === null) {
+      render(this.#filmComponent, this.#listContainer);
 
       return;
     }
 
+    if (this.#MODE === Mode.DETAILS) {
+      render(this.#detailsComponent, this.#detailsContainer);
+    }
+
     replace(this.#filmComponent, prevFilmComponent);
     remove(prevFilmComponent);
+    remove(prevDetailsComponent);
   };
 
   destroy = () => {
     remove(this.#filmComponent);
+    remove(this.#detailsComponent);
   };
 }
