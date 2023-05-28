@@ -108,7 +108,8 @@ export default class FilmsPresenter {
       case UpdateType.MINOR:
         this.#removePopup();
         this.#renderPopup(data);
-        this.#filmPresenter.get(data.id).init(data);
+        this.#filmPresenter.get(data.id)?.init(data);
+
         break;
 
       case UpdateType.MAJOR:
