@@ -16,9 +16,9 @@ export default class FilmPresenter {
     this.#renderPopup = renderPopup;
   }
 
-  #handleCardClick = () => {
-    this.#renderPopup(this.#film);
-  };
+  // #handleCardClick = () => {
+  //   this.#renderPopup(this.#film);
+  // };
 
   #handleWatchlistClick = () => {
     this.#changeData(UserActions.UPDATE, UpdateType.PATCH, {
@@ -57,7 +57,7 @@ export default class FilmPresenter {
 
     this.#filmComponent = new FilmCardView({
       film: this.#film,
-      onCardClick: this.#handleCardClick,
+      // onCardClick: this.#handleCardClick,
       onWatchlistClick: this.#handleWatchlistClick,
       onWatchedClick: this.#handleWatchedClick,
       onFavoriteClick: this.#handleFavoriteClick,
@@ -69,10 +69,7 @@ export default class FilmPresenter {
       return;
     }
 
-    if (this.#filmListContainer.contains(prevFilmComponent.element)) {
-      replace(this.#filmComponent, prevFilmComponent);
-    }
-
+    replace(this.#filmComponent, prevFilmComponent);
     remove(prevFilmComponent);
   };
 
