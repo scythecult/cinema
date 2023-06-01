@@ -1,7 +1,6 @@
-import { EMOTIONS, UpdateType, UserActions } from '../const';
+import { EMOTIONS } from '../const';
 import AbstractStatefulView from '../framework/view/abstract-stateful-view';
 import { formatDate, humanizeReleaseDate } from '../utils/film';
-import { getCurrentFilmComments } from '../utils/popup';
 
 const createDropdownTemplate = () => '<div class="dropdown"></div>';
 
@@ -175,8 +174,9 @@ const createCommentsTemplate = ({ comments = [], comment = '', emotion = 'smile'
   </section>`;
 };
 
-const createPopupTemplate = ({ film = {}, comments = [] } = {}) => {
+const createPopupTemplate = ({ film = {} } = {}) => {
   const {
+    comments,
     filmInfo,
     userDetails,
     commentInfo: { comment, emotion },
@@ -210,16 +210,21 @@ const createPopupTemplate = ({ film = {}, comments = [] } = {}) => {
 };
 
 let commentId = 101;
+
+const DetailsCommentState = {
+  prevCommentText: '',
+  prevEmoji: '',
+};
 export default class DetailsView extends AbstractStatefulView {
-  #currentFilmComments = null;
   #scrollPosition = 0;
 
-  #changeData = null;
   #handleCloseClick = null;
   #handleKeydown = null;
-  #handleWatchlistClick = null;
-  #handleWatchedClick = null;
-  #handleFavoriteClick = null;
+  #handleWatchlist = null;
+  #handleWatched = null;
+  #handleFavorite = null;
+  #handleAddComment = null;
+  #handleDeleteComment = null;
 
   constructor({
     film,
@@ -227,31 +232,32 @@ export default class DetailsView extends AbstractStatefulView {
     scrollPosition = 0,
     onCloseClick = () => {},
     onKeydown = () => {},
-    changeData = () => {},
     onWatchlistClick = () => {},
     onWatchedClick = () => {},
     onFavoriteClick = () => {},
+    onAddCommentClick = () => {},
+    onDeleteCommentClick = () => {},
   }) {
     super();
     this._state = DetailsView.convertFilmToState({ ...film, comments });
-    this.#currentFilmComments = getCurrentFilmComments(this._state.commentIds, this._state.comments);
     this.#handleCloseClick = onCloseClick;
     this.#handleKeydown = onKeydown;
-    this.#handleWatchlistClick = onWatchlistClick;
-    this.#handleWatchedClick = onWatchedClick;
-    this.#handleFavoriteClick = onFavoriteClick;
+    this.#handleWatchlist = onWatchlistClick;
+    this.#handleWatched = onWatchedClick;
+    this.#handleFavorite = onFavoriteClick;
+    this.#handleAddComment = onAddCommentClick;
+    this.#handleDeleteComment = onDeleteCommentClick;
     this.#scrollPosition = scrollPosition;
 
-    this.#changeData = changeData;
-
-    this._commentText = null;
-    this._selectedSmile = null;
-
+    this.#updateCommentState();
     this.#setInnerHandlers();
     this.#setScrollPosition();
   }
 
-  static convertFilmToState = (info) => ({ ...info, commentInfo: { comment: '', emotion: '' } });
+  static convertFilmToState = (info) => ({
+    ...info,
+    commentInfo: { comment: DetailsCommentState.prevCommentText, emotion: DetailsCommentState.prevEmoji },
+  });
 
   static convertStateToFilm = (state) => {
     const info = { ...state };
@@ -263,7 +269,7 @@ export default class DetailsView extends AbstractStatefulView {
   };
 
   get template() {
-    return createPopupTemplate({ film: this._state, comments: this.#currentFilmComments });
+    return createPopupTemplate({ film: this._state });
   }
 
   _restoreHandlers = () => {
@@ -286,8 +292,18 @@ export default class DetailsView extends AbstractStatefulView {
     });
   };
 
-  #updateScrollPosition = (newPosition) => {
-    this.#scrollPosition = newPosition;
+  #updateCommentState = () => {
+    const { prevEmoji } = DetailsCommentState;
+    const filmEmojiRadio = this.element.querySelector(`#emoji-${prevEmoji}`);
+
+    if (filmEmojiRadio) {
+      filmEmojiRadio.checked = true;
+    }
+  };
+
+  #resetCommentState = () => {
+    DetailsCommentState.prevCommentText = '';
+    DetailsCommentState.prevEmoji = '';
   };
 
   #setInnerHandlers = () => {
@@ -312,18 +328,6 @@ export default class DetailsView extends AbstractStatefulView {
     this.element.querySelector(`#emoji-${this._state.commentInfo.emotion}`).checked = true;
   };
 
-  #handleCommentDeleteClick = (evt) => {
-    const deleteElement = evt.target.closest('.film-details__comment-delete');
-
-    if (!deleteElement) {
-      return;
-    }
-    const { id } = deleteElement.dataset;
-    const filmInfo = DetailsView.convertStateToFilm(this._state);
-
-    this.#changeData(UserActions.DELETE_COMMENT, UpdateType.MINOR, { commentId: +id, film: filmInfo });
-  };
-
   #handleEmojiClick = (evt) => {
     evt.preventDefault();
     const emojiLabelElement = evt.target.closest('.film-details__emoji-label');
@@ -335,12 +339,15 @@ export default class DetailsView extends AbstractStatefulView {
     const currentEmoji = emojiLabelElement.getAttribute('for');
     const currentInput = evt.currentTarget.querySelector(`#${currentEmoji}`);
 
-    this._selectedSmile = currentInput.value;
+    DetailsCommentState.prevEmoji = currentInput.value;
 
-    this.#updateScrollPosition(this.element.querySelector('.film-details').scrollTop);
+    this.#scrollPosition = this.getScrollPosition();
+
     this.updateElement({
       commentInfo: { ...this._state.commentInfo, emotion: currentInput.value },
     });
+
+    this.#setScrollPosition();
     this.#markEmojiAsChecked();
   };
 
@@ -348,41 +355,53 @@ export default class DetailsView extends AbstractStatefulView {
     if (evt.code === 'Enter' && (evt.ctrlKey || evt.metaKey)) {
       const currentId = commentId++;
 
-      if (!this._commentText || !this._selectedSmile) {
+      if (!DetailsCommentState.prevCommentText || !DetailsCommentState.prevEmoji) {
         return;
       }
 
-      this.#updateScrollPosition(this.element.querySelector('.film-details').scrollTop);
-
       const filmInfo = DetailsView.convertStateToFilm(this._state);
       const updatedFilmInfo = { ...filmInfo, commentIds: [...filmInfo.commentIds, currentId] };
-      const newComment = { ...this._state.commentInfo, id: currentId };
+      const newComment = { comment: { ...this._state.commentInfo, id: currentId }, film: updatedFilmInfo };
 
-      this.#changeData(UserActions.ADD_COMMENT, UpdateType.MINOR, { comment: newComment, film: updatedFilmInfo });
-      this.#setScrollPosition();
+      this.#resetCommentState();
+      this.#handleAddComment(newComment);
     }
+  };
+
+  #handleCommentDeleteClick = (evt) => {
+    const deleteElement = evt.target.closest('.film-details__comment-delete');
+
+    if (!deleteElement) {
+      return;
+    }
+    const { id } = deleteElement.dataset;
+    const filmInfo = DetailsView.convertStateToFilm(this._state);
+    const commentInfo = { commentId: +id, film: filmInfo };
+
+    this.#handleDeleteComment(commentInfo);
   };
 
   #handleCommentInput = (evt) => {
     const comment = evt.target.value.trim();
-    this._commentText = comment;
+
+    DetailsCommentState.prevCommentText = comment;
 
     this._setState({ commentInfo: { ...this._state.commentInfo, comment } });
   };
 
-  #addToWatchedClick = (evt) => {
-    evt.preventDefault();
-    this.#handleWatchedClick();
-  };
-
   #addToWatchlistClick = (evt) => {
     evt.preventDefault();
-    this.#handleWatchlistClick();
+    this.#handleWatchlist();
+  };
+
+  #addToWatchedClick = (evt) => {
+    evt.preventDefault();
+    this.#handleWatched();
   };
 
   #addToFavoriteClick = (evt) => {
     evt.preventDefault();
-    this.#handleFavoriteClick();
+    this.#handleFavorite();
   };
 
   #keydownHandler = (evt) => {

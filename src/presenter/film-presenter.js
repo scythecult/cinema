@@ -1,5 +1,6 @@
 import { Mode, UpdateType, UserActions } from '../const';
 import { remove, render, replace } from '../framework/render';
+import { getCurrentFilmComments } from '../utils/popup';
 import FilmCardView from '../view/film-card-view';
 import DetailsView from '../view/film-details-view';
 
@@ -11,12 +12,13 @@ export default class FilmPresenter {
   #detailsComponent = null;
 
   #changeData = null;
+  #adaptedComments = null;
 
   #scrollPosition = 0;
   #MODE = Mode.DEFAULT;
 
-  constructor({ filmsListContainer, changeData }) {
-    this.#listContainer = filmsListContainer;
+  constructor({ container, changeData }) {
+    this.#listContainer = container;
     this.#changeData = changeData;
   }
 
@@ -62,17 +64,32 @@ export default class FilmPresenter {
     });
   };
 
+  #handleAddComment = (newComment = {}) => {
+    this.#updateScrollPosition();
+
+    this.#changeData(UserActions.ADD_COMMENT, UpdateType.PATCH, newComment);
+  };
+
+  #handleDeleteComment = (commentInfo = {}) => {
+    this.#updateScrollPosition();
+
+    this.#changeData(UserActions.DELETE_COMMENT, UpdateType.PATCH, commentInfo);
+  };
+
   #renderDetails = () => {
     this.#MODE = Mode.DETAILS;
 
     this.#detailsComponent = new DetailsView({
       film: this.#film,
+      comments: this.#adaptedComments,
       scrollPosition: this.#scrollPosition,
       onCloseClick: this.#removeDetails,
       onKeydown: this.#removeDetails,
       onWatchlistClick: this.#handleWatchlistClick,
       onWatchedClick: this.#handleWatchedClick,
       onFavoriteClick: this.#handleFavoriteClick,
+      onAddCommentClick: this.#handleAddComment,
+      onDeleteCommentClick: this.#handleDeleteComment,
     });
 
     this.#detailsComponent.addOverflow();
@@ -86,8 +103,9 @@ export default class FilmPresenter {
     remove(this.#detailsComponent);
   };
 
-  init = (film) => {
+  init = (film, comments) => {
     this.#film = film;
+    this.#adaptedComments = getCurrentFilmComments(this.#film.commentIds, comments);
 
     const prevFilmComponent = this.#filmComponent;
     const prevDetailsComponent = this.#detailsComponent;
@@ -102,12 +120,15 @@ export default class FilmPresenter {
 
     this.#detailsComponent = new DetailsView({
       film: this.#film,
+      comments: this.#adaptedComments,
       scrollPosition: this.#scrollPosition,
       onCloseClick: this.#removeDetails,
       onKeydown: this.#removeDetails,
       onWatchlistClick: this.#handleWatchlistClick,
       onWatchedClick: this.#handleWatchedClick,
       onFavoriteClick: this.#handleFavoriteClick,
+      onAddCommentClick: this.#handleAddComment,
+      onDeleteCommentClick: this.#handleDeleteComment,
     });
 
     if (prevFilmComponent === null || prevDetailsComponent === null) {
