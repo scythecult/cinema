@@ -211,13 +211,7 @@ const createPopupTemplate = ({ film = {} } = {}) => {
 
 let commentId = 101;
 
-const DetailsCommentState = {
-  prevCommentText: '',
-  prevEmoji: '',
-};
 export default class DetailsView extends AbstractStatefulView {
-  #scrollPosition = 0;
-
   #handleCloseClick = null;
   #handleKeydown = null;
   #handleWatchlist = null;
@@ -229,7 +223,6 @@ export default class DetailsView extends AbstractStatefulView {
   constructor({
     film,
     comments = [],
-    scrollPosition = 0,
     onCloseClick = () => {},
     onKeydown = () => {},
     onWatchlistClick = () => {},
@@ -247,16 +240,15 @@ export default class DetailsView extends AbstractStatefulView {
     this.#handleFavorite = onFavoriteClick;
     this.#handleAddComment = onAddCommentClick;
     this.#handleDeleteComment = onDeleteCommentClick;
-    this.#scrollPosition = scrollPosition;
 
-    this.#updateCommentState();
     this.#setInnerHandlers();
     this.#setScrollPosition();
   }
 
   static convertFilmToState = (info) => ({
     ...info,
-    commentInfo: { comment: DetailsCommentState.prevCommentText, emotion: DetailsCommentState.prevEmoji },
+    commentInfo: { comment: '', emotion: '' },
+    scrollPosition: 0,
   });
 
   static convertStateToFilm = (state) => {
@@ -288,22 +280,10 @@ export default class DetailsView extends AbstractStatefulView {
 
   #setScrollPosition = () => {
     requestAnimationFrame(() => {
-      this.element.querySelector('.film-details').scrollTop = this.#scrollPosition;
+      const { scrollPosition } = this._state;
+
+      this.element.querySelector('.film-details').scrollTop = scrollPosition;
     });
-  };
-
-  #updateCommentState = () => {
-    const { prevEmoji } = DetailsCommentState;
-    const filmEmojiRadio = this.element.querySelector(`#emoji-${prevEmoji}`);
-
-    if (filmEmojiRadio) {
-      filmEmojiRadio.checked = true;
-    }
-  };
-
-  #resetCommentState = () => {
-    DetailsCommentState.prevCommentText = '';
-    DetailsCommentState.prevEmoji = '';
   };
 
   #setInnerHandlers = () => {
@@ -338,24 +318,27 @@ export default class DetailsView extends AbstractStatefulView {
 
     const currentEmoji = emojiLabelElement.getAttribute('for');
     const currentInput = evt.currentTarget.querySelector(`#${currentEmoji}`);
-
-    DetailsCommentState.prevEmoji = currentInput.value;
-
-    this.#scrollPosition = this.getScrollPosition();
+    const scrollPosition = this.getScrollPosition();
 
     this.updateElement({
       commentInfo: { ...this._state.commentInfo, emotion: currentInput.value },
+      scrollPosition,
     });
 
     this.#setScrollPosition();
     this.#markEmojiAsChecked();
   };
 
+  #clearCommentForm = () => {
+    this._setState({ commentInfo: { comment: '', emotion: '' } });
+  };
+
   #handleCommentSubmit = (evt) => {
     if (evt.code === 'Enter' && (evt.ctrlKey || evt.metaKey)) {
       const currentId = commentId++;
+      const { commentInfo } = this._state;
 
-      if (!DetailsCommentState.prevCommentText || !DetailsCommentState.prevEmoji) {
+      if (!commentInfo.comment || !commentInfo.emotion) {
         return;
       }
 
@@ -363,8 +346,9 @@ export default class DetailsView extends AbstractStatefulView {
       const updatedFilmInfo = { ...filmInfo, commentIds: [...filmInfo.commentIds, currentId] };
       const newComment = { comment: { ...this._state.commentInfo, id: currentId }, film: updatedFilmInfo };
 
-      this.#resetCommentState();
+      this.#clearCommentForm();
       this.#handleAddComment(newComment);
+      this.#setScrollPosition();
     }
   };
 
@@ -379,12 +363,11 @@ export default class DetailsView extends AbstractStatefulView {
     const commentInfo = { commentId: +id, film: filmInfo };
 
     this.#handleDeleteComment(commentInfo);
+    this.#setScrollPosition();
   };
 
   #handleCommentInput = (evt) => {
     const comment = evt.target.value.trim();
-
-    DetailsCommentState.prevCommentText = comment;
 
     this._setState({ commentInfo: { ...this._state.commentInfo, comment } });
   };
@@ -392,16 +375,22 @@ export default class DetailsView extends AbstractStatefulView {
   #addToWatchlistClick = (evt) => {
     evt.preventDefault();
     this.#handleWatchlist();
+    this.#setScrollPosition();
+    this.#markEmojiAsChecked();
   };
 
   #addToWatchedClick = (evt) => {
     evt.preventDefault();
     this.#handleWatched();
+    this.#setScrollPosition();
+    this.#markEmojiAsChecked();
   };
 
   #addToFavoriteClick = (evt) => {
     evt.preventDefault();
     this.#handleFavorite();
+    this.#setScrollPosition();
+    this.#markEmojiAsChecked();
   };
 
   #keydownHandler = (evt) => {
