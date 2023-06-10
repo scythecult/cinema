@@ -301,11 +301,13 @@ export default class DetailsView extends AbstractStatefulView {
   };
 
   #markEmojiAsChecked = () => {
-    if (!this._state.commentInfo.emotion) {
+    const { emotion } = this._state.commentInfo;
+
+    if (!emotion) {
       return;
     }
 
-    this.element.querySelector(`#emoji-${this._state.commentInfo.emotion}`).checked = true;
+    this.element.querySelector(`#emoji-${emotion}`).checked = true;
   };
 
   #handleEmojiClick = (evt) => {
@@ -329,7 +331,7 @@ export default class DetailsView extends AbstractStatefulView {
     this.#markEmojiAsChecked();
   };
 
-  #clearCommentForm = () => {
+  #resetCommentForm = () => {
     this._setState({ commentInfo: { comment: '', emotion: '' } });
   };
 
@@ -346,7 +348,7 @@ export default class DetailsView extends AbstractStatefulView {
       const updatedFilmInfo = { ...filmInfo, commentIds: [...filmInfo.commentIds, currentId] };
       const newComment = { comment: { ...this._state.commentInfo, id: currentId }, film: updatedFilmInfo };
 
-      this.#clearCommentForm();
+      this.#resetCommentForm();
       this.#handleAddComment(newComment);
       this.#setScrollPosition();
     }

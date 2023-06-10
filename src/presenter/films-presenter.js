@@ -1,5 +1,5 @@
-import { FilterType, SortType, StubText, UpdateType, UserActions } from '../const';
-import { remove, render, RenderPosition, replace } from '../framework/render';
+import { FilterType, SortType, UpdateType, UserActions } from '../const';
+import { remove, render, RenderPosition } from '../framework/render';
 import { sortByRating, sortByReleaseDate } from '../utils/film';
 import { filter } from '../utils/filter';
 import FilmsContainerView from '../view/films-container-view';
@@ -26,6 +26,7 @@ export default class FilmsPresenter {
 
   #renderedFilmCount = FILM_COUNT_PER_STEP;
   #currentSortType = SortType.DEFAULT;
+  #filterType = FilterType.ALL;
 
   constructor({ container, filmsModel = {}, filterModel = {}, commentsModel = {} }) {
     this.#filmsModel = filmsModel;
@@ -57,10 +58,10 @@ export default class FilmsPresenter {
   }
 
   #getFilteredFilms = () => {
-    const filterType = this.#filterModel.filter;
+    this.#filterType = this.#filterModel.filter;
     const films = this.#filmsModel.films;
 
-    return filter[filterType](films);
+    return filter[this.#filterType](films);
   };
 
   #handleViewAction = (actionType, updateType, update) => {
@@ -84,10 +85,10 @@ export default class FilmsPresenter {
         if (FilterType.ALL !== this.#filterModel.filter) {
           this.#clearFilmList();
           this.#renderFilmList();
-          this.#renderStub();
 
           return;
         }
+
         this.#filmPresenter.get(data.id).init(data, this.comments);
         break;
 
@@ -97,7 +98,6 @@ export default class FilmsPresenter {
       case UpdateType.MAJOR:
         this.#clearFilmList();
         this.#renderFilmList();
-        this.#renderStub();
         break;
     }
   };
@@ -143,6 +143,7 @@ export default class FilmsPresenter {
     this.#renderSort(this.#currentSortType);
     this.#renderFilms(films);
     this.#renderShowMoreButton();
+    this.#renderStub();
   };
 
   #clearFilmList = () => {
@@ -151,44 +152,15 @@ export default class FilmsPresenter {
     this.#renderedFilmCount = FILM_COUNT_PER_STEP;
     remove(this.#showMoreButtonComponent);
     remove(this.#sortComponent);
+    remove(this.#stubComponent);
   };
 
   #renderStub = () => {
-    const filteredFilms = this.#getFilteredFilms();
-    let textContent = '';
+    if (!this.#getFilteredFilms().length) {
+      this.#stubComponent = new StubView(this.#filterType);
 
-    switch (this.#filterModel.filter) {
-      case FilterType.WATCHLIST:
-        if (!filteredFilms.length) {
-          textContent = StubText.WATCHLIST;
-        }
-        break;
-      case FilterType.HISTORY:
-        if (!filteredFilms.length) {
-          textContent = StubText.HISTORY;
-        }
-        break;
-      case FilterType.FAVORITE:
-        if (!filteredFilms.length) {
-          textContent = StubText.FAVORITES;
-        }
-        break;
-    }
-
-    if (!textContent) {
-      return;
-    }
-
-    const prevStubComponent = this.#stubComponent;
-    this.#stubComponent = new StubView(textContent);
-
-    if (prevStubComponent === null) {
       render(this.#stubComponent, this.#filmList, RenderPosition.AFTERBEGIN);
-      return;
     }
-
-    replace(this.#stubComponent, prevStubComponent);
-    remove(prevStubComponent);
   };
 
   #renderShowMoreButton = () => {
@@ -217,11 +189,6 @@ export default class FilmsPresenter {
     this.#filmListContainer = this.#filmsContainerComponent.element.querySelector('.films-list__container');
 
     render(this.#filmsContainerComponent, this.#mainContainer);
-
-    if (!this.films.length) {
-      this.#renderStub();
-      return;
-    }
 
     this.#renderFilmList();
   };
