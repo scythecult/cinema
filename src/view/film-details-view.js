@@ -1,7 +1,6 @@
 import { EMOTIONS } from '../const';
 import AbstractStatefulView from '../framework/view/abstract-stateful-view';
 import { formatDate, humanizeReleaseDate } from '../utils/film';
-import { getCurrentFilmComments } from '../utils/popup';
 
 const createDropdownTemplate = () => '<div class="dropdown"></div>';
 
@@ -99,6 +98,7 @@ const createFilmDetailsControlsTemplate = (props = {}) => {
 
 const createCommentTemplate = (props = {}) => {
   const {
+    id,
     emotion = 'smile',
     comment = 'Interesting setting and a good cast',
     author = 'Tim Macoveev',
@@ -106,7 +106,7 @@ const createCommentTemplate = (props = {}) => {
   } = props;
   const formattedDate = formatDate(date);
 
-  return `<li class="film-details__comment">
+  return `<li class="film-details__comment" >
 <span class="film-details__comment-emoji">
   <img src="./images/emoji/${emotion}.png" width="55" height="55" alt="${emotion}">
 </span>
@@ -115,7 +115,7 @@ const createCommentTemplate = (props = {}) => {
   <p class="film-details__comment-info">
     <span class="film-details__comment-author">${author}</span>
     <span class="film-details__comment-day">${formattedDate}</span>
-    <button class="film-details__comment-delete">Delete</button>
+    <button class="film-details__comment-delete" data-id=${id}>Delete</button>
   </p>
 </div>
 </li>`;
@@ -131,7 +131,7 @@ const createCommentEmojiTemplate = () =>
   </label>`
   ).join('\n');
 
-const createIconEmojiTemplate = (emotion) =>
+const createIconEmojiTemplate = (emotion = 'smile') =>
   `<img src="images/emoji/${emotion}.png" width="55" height="55" alt="emoji-smile">`;
 
 const createNewCommentFormTemplate = ({ comment = '', emotion = 'smile' }) => {
@@ -158,7 +158,7 @@ const createNewCommentFormTemplate = ({ comment = '', emotion = 'smile' }) => {
   </div>`;
 };
 
-const createCommentsTemplate = ({ comments = [], comment = '', emotion = '' }) => {
+const createCommentsTemplate = ({ comments = [], comment = '', emotion = 'smile' }) => {
   const commentsTemplate = comments.map(createCommentTemplate);
   const newCommentFormView = createNewCommentFormTemplate({ comment, emotion });
   const commentsCount = comments.length;
@@ -174,8 +174,9 @@ const createCommentsTemplate = ({ comments = [], comment = '', emotion = '' }) =
   </section>`;
 };
 
-const createPopupTemplate = ({ film = {}, comments = [] } = {}) => {
+const createPopupTemplate = ({ film = {} } = {}) => {
   const {
+    comments,
     filmInfo,
     userDetails,
     commentInfo: { comment, emotion },
@@ -209,42 +210,58 @@ const createPopupTemplate = ({ film = {}, comments = [] } = {}) => {
 };
 
 let commentId = 101;
-export default class PopupView extends AbstractStatefulView {
-  #comments = null;
-  #currentFilmComments = null;
-  #scrollPosition = 0;
 
-  #changeData = null;
-  #changeCommentsData = null;
+export default class DetailsView extends AbstractStatefulView {
   #handleCloseClick = null;
   #handleKeydown = null;
+  #handleWatchlist = null;
+  #handleWatched = null;
+  #handleFavorite = null;
+  #handleAddComment = null;
+  #handleDeleteComment = null;
 
-  constructor({ film, comments, onCloseClick, onKeydown, changeData, changeCommentsData }) {
+  constructor({
+    film,
+    comments = [],
+    onCloseClick = () => {},
+    onKeydown = () => {},
+    onWatchlistClick = () => {},
+    onWatchedClick = () => {},
+    onFavoriteClick = () => {},
+    onAddCommentClick = () => {},
+    onDeleteCommentClick = () => {},
+  }) {
     super();
-    this._state = PopupView.convertFilmToState(film);
-    this.#comments = comments;
-    this.#currentFilmComments = getCurrentFilmComments(this._state.commentIds, this.#comments);
+    this._state = DetailsView.convertFilmToState({ ...film, comments });
     this.#handleCloseClick = onCloseClick;
     this.#handleKeydown = onKeydown;
-    this.#changeData = changeData;
-    this.#changeCommentsData = changeCommentsData;
+    this.#handleWatchlist = onWatchlistClick;
+    this.#handleWatched = onWatchedClick;
+    this.#handleFavorite = onFavoriteClick;
+    this.#handleAddComment = onAddCommentClick;
+    this.#handleDeleteComment = onDeleteCommentClick;
 
     this.#setInnerHandlers();
-    this.#updateScrollPosition();
+    this.#setScrollPosition();
   }
 
-  static convertFilmToState = (film) => ({ ...film, commentInfo: { comment: '', emotion: '' } });
+  static convertFilmToState = (info) => ({
+    ...info,
+    commentInfo: { comment: '', emotion: '' },
+    scrollPosition: 0,
+  });
 
   static convertStateToFilm = (state) => {
-    const film = { ...state };
+    const info = { ...state };
 
-    delete film.commentInfo;
+    delete info.comments;
+    delete info.commentInfo;
 
-    return film;
+    return info;
   };
 
   get template() {
-    return createPopupTemplate({ film: this._state, comments: this.#currentFilmComments });
+    return createPopupTemplate({ film: this._state });
   }
 
   _restoreHandlers = () => {
@@ -259,6 +276,16 @@ export default class PopupView extends AbstractStatefulView {
     document.body.classList.remove('hide-overflow');
   };
 
+  getScrollPosition = () => this.element.querySelector('.film-details').scrollTop;
+
+  #setScrollPosition = () => {
+    requestAnimationFrame(() => {
+      const { scrollPosition } = this._state;
+
+      this.element.querySelector('.film-details').scrollTop = scrollPosition;
+    });
+  };
+
   #setInnerHandlers = () => {
     document.addEventListener('keydown', this.#keydownHandler);
     this.element.addEventListener('click', this.#closeClickHandler);
@@ -268,24 +295,19 @@ export default class PopupView extends AbstractStatefulView {
     this.element.querySelector('.film-details__new-comment').addEventListener('keydown', this.#handleCommentSubmit);
     this.element.querySelector('.film-details__comment-input').addEventListener('input', this.#handleCommentInput);
     this.element.querySelector('.film-details__emoji-list').addEventListener('click', this.#handleEmojiClick);
-  };
-
-  #setScrollPosition = () => {
-    this.#scrollPosition = this.element.querySelector('.film-details').scrollTop;
-    this._setState({ prevScrollValue: this.element.querySelector('.film-details').scrollTop });
-  };
-
-  #updateScrollPosition = () => {
-    this.element.querySelector('.film-details').scrollTop = this._state.prevScrollValue;
-    this.element.querySelector('.film-details').scrollTop = this.#scrollPosition;
+    this.element
+      .querySelector('.film-details__comments-list')
+      .addEventListener('click', this.#handleCommentDeleteClick);
   };
 
   #markEmojiAsChecked = () => {
-    if (!this._state.commentInfo.emotion) {
+    const { emotion } = this._state.commentInfo;
+
+    if (!emotion) {
       return;
     }
 
-    this.element.querySelector(`#emoji-${this._state.commentInfo.emotion}`).checked = true;
+    this.element.querySelector(`#emoji-${emotion}`).checked = true;
   };
 
   #handleEmojiClick = (evt) => {
@@ -298,81 +320,79 @@ export default class PopupView extends AbstractStatefulView {
 
     const currentEmoji = emojiLabelElement.getAttribute('for');
     const currentInput = evt.currentTarget.querySelector(`#${currentEmoji}`);
+    const scrollPosition = this.getScrollPosition();
 
-    this.#setScrollPosition();
     this.updateElement({
       commentInfo: { ...this._state.commentInfo, emotion: currentInput.value },
+      scrollPosition,
     });
+
+    this.#setScrollPosition();
     this.#markEmojiAsChecked();
-    this.#updateScrollPosition();
+  };
+
+  #resetCommentForm = () => {
+    this._setState({ commentInfo: { comment: '', emotion: '' } });
   };
 
   #handleCommentSubmit = (evt) => {
     if (evt.code === 'Enter' && (evt.ctrlKey || evt.metaKey)) {
       const currentId = commentId++;
+      const { commentInfo } = this._state;
 
+      if (!commentInfo.comment || !commentInfo.emotion) {
+        return;
+      }
+
+      const filmInfo = DetailsView.convertStateToFilm(this._state);
+      const updatedFilmInfo = { ...filmInfo, commentIds: [...filmInfo.commentIds, currentId] };
+      const newComment = { comment: { ...this._state.commentInfo, id: currentId }, film: updatedFilmInfo };
+
+      this.#resetCommentForm();
+      this.#handleAddComment(newComment);
       this.#setScrollPosition();
-
-      this.updateElement({
-        commentIds: [...this._state.commentIds, `${currentId}`],
-        commentInfo: { ...this._state.commentInfo, id: `${currentId}` },
-      });
-
-      this.#changeCommentsData(this._state.commentInfo, PopupView.convertStateToFilm(this._state));
-      this.#changeData(PopupView.convertStateToFilm(this._state));
-      this.#updateScrollPosition();
     }
   };
 
+  #handleCommentDeleteClick = (evt) => {
+    const deleteElement = evt.target.closest('.film-details__comment-delete');
+
+    if (!deleteElement) {
+      return;
+    }
+    const { id } = deleteElement.dataset;
+    const filmInfo = DetailsView.convertStateToFilm(this._state);
+    const commentInfo = { commentId: +id, film: filmInfo };
+
+    this.#handleDeleteComment(commentInfo);
+    this.#setScrollPosition();
+  };
+
   #handleCommentInput = (evt) => {
-    this._setState({ commentInfo: { ...this._state.commentInfo, comment: evt.target.value.trim() } });
+    const comment = evt.target.value.trim();
+
+    this._setState({ commentInfo: { ...this._state.commentInfo, comment } });
   };
 
   #addToWatchlistClick = (evt) => {
     evt.preventDefault();
-
+    this.#handleWatchlist();
     this.#setScrollPosition();
-    this.updateElement({
-      userDetails: {
-        ...this._state.userDetails,
-        watchlist: !this._state.userDetails.watchlist,
-      },
-    });
     this.#markEmojiAsChecked();
-    this.#updateScrollPosition();
-    this.#changeData(PopupView.convertStateToFilm(this._state));
   };
 
   #addToWatchedClick = (evt) => {
     evt.preventDefault();
-
+    this.#handleWatched();
     this.#setScrollPosition();
-    this.updateElement({
-      userDetails: {
-        ...this._state.userDetails,
-        alreadyWatched: !this._state.userDetails.alreadyWatched,
-      },
-    });
-
     this.#markEmojiAsChecked();
-    this.#updateScrollPosition();
-    this.#changeData(PopupView.convertStateToFilm(this._state));
   };
 
   #addToFavoriteClick = (evt) => {
     evt.preventDefault();
-
+    this.#handleFavorite();
     this.#setScrollPosition();
-    this.updateElement({
-      userDetails: {
-        ...this._state.userDetails,
-        favorite: !this._state.userDetails.favorite,
-      },
-    });
     this.#markEmojiAsChecked();
-    this.#updateScrollPosition();
-
-    this.#changeData(PopupView.convertStateToFilm(this._state));
   };
 
   #keydownHandler = (evt) => {
