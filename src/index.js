@@ -5,6 +5,10 @@ import StatsPresenter from './presenter/stats-presenter';
 import CommentsModel from './model/comments-model';
 import FilterModel from './model/filter-model';
 import FiltersPresenter from './presenter/filter-presenter';
+import FilmApiService from './film-api-service';
+
+const AUTHORIZATION = 'Basic check100500normalno';
+const END_POINT = 'https://17.ecmascript.pages.academy/cinemaddict';
 
 // containers
 const profileContainer = document.querySelector('.header');
@@ -13,7 +17,7 @@ const footerContainer = document.querySelector('.footer');
 
 // models
 const filterModel = new FilterModel();
-const filmsModel = new FilmsModel();
+const filmsModel = new FilmsModel(new FilmApiService(END_POINT, AUTHORIZATION));
 const commentsModel = new CommentsModel();
 
 // presenters
@@ -26,3 +30,4 @@ profilePresenter.init();
 filterPresenter.init();
 filmsPresenter.init();
 statsPresenter.init();
+filmsModel.init();

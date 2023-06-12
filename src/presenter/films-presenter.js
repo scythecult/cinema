@@ -99,6 +99,8 @@ export default class FilmsPresenter {
         this.#clearFilmList();
         this.#renderFilmList();
         break;
+      case UpdateType.INIT:
+        this.#renderFilmList();
     }
   };
 
@@ -189,7 +191,5 @@ export default class FilmsPresenter {
     this.#filmListContainer = this.#filmsContainerComponent.element.querySelector('.films-list__container');
 
     render(this.#filmsContainerComponent, this.#mainContainer);
-
-    this.#renderFilmList();
   };
 }

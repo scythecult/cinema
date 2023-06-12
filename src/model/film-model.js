@@ -1,12 +1,70 @@
+import { UpdateType } from '../const';
 import Observable from '../framework/observable';
-import { generateFilmInfo } from '../mock/film';
 
 export default class FilmsModel extends Observable {
-  #films = Array.from({ length: 11 }, generateFilmInfo);
+  #apiService = null;
+  #films = null;
+
+  constructor(apiService) {
+    super();
+    this.#apiService = apiService;
+    this.#films = [];
+  }
 
   get films() {
     return this.#films;
   }
+
+  init = async () => {
+    try {
+      const films = await this.#apiService.films;
+      this.#films = films.map(this.#adaptToClient);
+    } catch (error) {
+      this.#films = [];
+    }
+
+    this._notify(UpdateType.INIT);
+  };
+
+  #adaptToClient = (rawFilm) => {
+    const filmInfo = {
+      ...rawFilm['film_info'],
+      ageRating: rawFilm['film_info']['age_rating'],
+      alternativeTitle: rawFilm['film_info']['alternative_title'],
+      totalRating: rawFilm['film_info']['total_rating'],
+      release: {
+        date: rawFilm['film_info'].release.date,
+        releaseCountry: rawFilm['film_info'].release['release_country'],
+      },
+    };
+
+    delete filmInfo.release['release_country'];
+    delete filmInfo['age_rating'];
+    delete filmInfo['alternative_title'];
+    delete filmInfo['total_rating'];
+
+    const userDetails = {
+      ...rawFilm['user_details'],
+      alreadyWatched: rawFilm['user_details']['already_watched'],
+      watchingDate: rawFilm['user_details']['watching_date'],
+    };
+
+    delete userDetails['already_watched'];
+    delete userDetails['watching_date'];
+
+    const adaptedFilm = {
+      ...rawFilm,
+      commentIds: rawFilm.comments,
+      filmInfo,
+      userDetails,
+    };
+
+    delete adaptedFilm.comments;
+    delete adaptedFilm['film_info'];
+    delete adaptedFilm['user_details'];
+
+    return adaptedFilm;
+  };
 
   update = (updateType, update) => {
     const index = this.#films.findIndex((item) => item.id === update.id);
@@ -22,13 +80,13 @@ export default class FilmsModel extends Observable {
 
   addComment = (updateType, update) => {
     const { film: currentFilm, comment } = update;
-    const filmIndex = this.films.findIndex((film) => film.id === currentFilm.id);
+    const filmIndex = this.films.findIndex((film) => String(film.id) === String(currentFilm.id));
 
     if (filmIndex !== -1) {
       const targetFilm = this.films[filmIndex];
       const updatedFilm = {
         ...targetFilm,
-        commentIds: [...targetFilm.commentIds, comment.id],
+        commentIds: [...targetFilm.commentIds, String(comment.id)],
       };
 
       this.films[filmIndex] = updatedFilm;
@@ -39,13 +97,13 @@ export default class FilmsModel extends Observable {
 
   removeComment = (updateType, update) => {
     const { film: currentFilm, commentId } = update;
-    const filmIndex = this.films.findIndex((film) => film.id === currentFilm.id);
+    const filmIndex = this.films.findIndex((film) => String(film.id) === String(currentFilm.id));
 
     if (filmIndex !== -1) {
       const targetFilm = this.films[filmIndex];
       const updatedFilm = {
         ...targetFilm,
-        commentIds: targetFilm.commentIds.filter((id) => id !== commentId),
+        commentIds: targetFilm.commentIds.filter((id) => String(id) !== String(commentId)),
       };
 
       this.films[filmIndex] = updatedFilm;

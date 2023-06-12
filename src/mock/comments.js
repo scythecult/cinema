@@ -27,6 +27,13 @@ const COMMENTS = [
     date: '2019-05-11T16:12:32.554Z',
     emotion: 'puke',
   },
+  {
+    id: 4,
+    author: 'Zalupeev',
+    comment: 'checking?',
+    date: '2019-05-11T16:12:32.554Z',
+    emotion: 'puke',
+  },
 ];
 
 export { COMMENTS };
