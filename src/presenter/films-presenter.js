@@ -136,10 +136,11 @@ export default class FilmsPresenter {
     const filmPresenter = new FilmPresenter({
       container,
       changeData: this.#handleViewAction,
+      commentsModel: this.#commentsModel,
     });
 
     this.#filmPresenter.set(film.id, filmPresenter);
-    filmPresenter.init(film, this.comments);
+    filmPresenter.init(film);
   };
 
   #renderFilms = (films) => {

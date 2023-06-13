@@ -8,9 +8,9 @@ import ApiService from './framework/api-service';
 // };
 
 export default class FilmApiService extends ApiService {
-  get films() {
-    return this._load({ url: 'movies' }).then(ApiService.parseResponse);
-  }
+  getFilms = () => this._load({ url: 'movies' }).then(ApiService.parseResponse);
+
+  getComments = (filmId) => this._load({ url: `comments/${filmId}` }).then(ApiService.parseResponse);
 
   testUpdate = (films) => films.map(this.#adaptToServer).slice(0, 1);
 

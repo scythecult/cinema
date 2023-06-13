@@ -10,6 +10,9 @@ import FilmApiService from './film-api-service';
 const AUTHORIZATION = 'Basic check100500normalno';
 const END_POINT = 'https://17.ecmascript.pages.academy/cinemaddict';
 
+// service
+const filmApiService = new FilmApiService(END_POINT, AUTHORIZATION);
+
 // containers
 const profileContainer = document.querySelector('.header');
 const mainContainer = document.querySelector('.main');
@@ -17,8 +20,8 @@ const footerContainer = document.querySelector('.footer');
 
 // models
 const filterModel = new FilterModel();
-const filmsModel = new FilmsModel(new FilmApiService(END_POINT, AUTHORIZATION));
-const commentsModel = new CommentsModel();
+const filmsModel = new FilmsModel(filmApiService);
+const commentsModel = new CommentsModel(filmApiService);
 
 // presenters
 const profilePresenter = new ProfilePresenter({ container: profileContainer });

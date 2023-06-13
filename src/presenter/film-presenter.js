@@ -1,6 +1,5 @@
 import { Mode, UpdateType, UserActions } from '../const';
 import { remove, render, replace } from '../framework/render';
-import { getCurrentFilmComments } from '../utils/popup';
 import FilmCardView from '../view/film-card-view';
 import DetailsView from '../view/film-details-view';
 
@@ -12,14 +11,16 @@ export default class FilmPresenter {
   #detailsComponent = null;
 
   #changeData = null;
-  #adaptedComments = null;
+  #comments = null;
+  #commentsModel = null;
 
   #scrollPosition = 0;
   #MODE = Mode.DEFAULT;
 
-  constructor({ container, changeData }) {
+  constructor({ container, changeData, commentsModel }) {
     this.#listContainer = container;
     this.#changeData = changeData;
+    this.#commentsModel = commentsModel;
   }
 
   #updateScrollPosition = () => {
@@ -79,7 +80,7 @@ export default class FilmPresenter {
   #updateDetailsComments = () => {
     this.#detailsComponent.updateElement({
       ...this.#film,
-      comments: this.#adaptedComments,
+      comments: this.#comments,
       scrollPosition: this.#scrollPosition,
     });
   };
@@ -96,12 +97,13 @@ export default class FilmPresenter {
     this.#updateDetailsComments();
   };
 
-  #renderDetails = () => {
+  #renderDetails = async () => {
+    this.#comments = await this.#commentsModel.init(this.#film.id);
     this.#MODE = Mode.DETAILS;
 
     this.#detailsComponent = new DetailsView({
       film: this.#film,
-      comments: this.#adaptedComments,
+      comments: this.#comments,
       onCloseClick: this.#removeDetails,
       onKeydown: this.#removeDetails,
       onWatchlistClick: this.#handleWatchlistClick,
@@ -122,9 +124,8 @@ export default class FilmPresenter {
     remove(this.#detailsComponent);
   };
 
-  init = (film, comments) => {
+  init = (film) => {
     this.#film = film;
-    this.#adaptedComments = getCurrentFilmComments(this.#film.commentIds, comments);
 
     const prevFilmComponent = this.#filmComponent;
 
