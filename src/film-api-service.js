@@ -1,18 +1,32 @@
 import ApiService from './framework/api-service';
 
-// const Method = {
-//   GET: 'GET',
-//   PUT: 'PUT',
-//   POST: 'POST',
-//   DELETE: 'DELETE',
-// };
+const Method = {
+  GET: 'GET',
+  PUT: 'PUT',
+  POST: 'POST',
+  DELETE: 'DELETE',
+};
 
 export default class FilmApiService extends ApiService {
   getFilms = () => this._load({ url: 'movies' }).then(ApiService.parseResponse);
 
   getComments = (filmId) => this._load({ url: `comments/${filmId}` }).then(ApiService.parseResponse);
 
-  testUpdate = (films) => films.map(this.#adaptToServer).slice(0, 1);
+  updateFilm = async (film) => {
+    const headers = new Headers();
+    headers.append('Content-Type', 'application/json');
+
+    const response = await this._load({
+      url: `movies/${film.id}`,
+      method: Method.PUT,
+      body: JSON.stringify(this.#adaptToServer(film)),
+      headers,
+    });
+
+    const parsedResponse = await ApiService.parseResponse(response);
+
+    return parsedResponse;
+  };
 
   #adaptToServer = (film) => {
     const filmInfo = {

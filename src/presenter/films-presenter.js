@@ -92,7 +92,7 @@ export default class FilmsPresenter {
           return;
         }
 
-        this.#filmPresenter.get(data.id).init(data, this.comments);
+        this.#filmPresenter.get(data.id).init(data);
         break;
 
       case UpdateType.MINOR:

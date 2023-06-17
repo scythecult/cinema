@@ -38,8 +38,6 @@ export default class FilmPresenter {
         watchlist: !this.#film.userDetails.watchlist,
       },
     });
-
-    this.#updateDetailsActions();
   };
 
   #handleWatchedClick = () => {
@@ -51,8 +49,6 @@ export default class FilmPresenter {
         alreadyWatched: !this.#film.userDetails.alreadyWatched,
       },
     });
-
-    this.#updateDetailsActions();
   };
 
   #handleFavoriteClick = () => {
@@ -64,37 +60,26 @@ export default class FilmPresenter {
         favorite: !this.#film.userDetails.favorite,
       },
     });
-
-    this.#updateDetailsActions();
   };
 
-  #updateDetailsActions = () => {
-    if (this.#MODE === Mode.DETAILS) {
-      this.#detailsComponent.updateElement({
-        ...this.#film,
-        scrollPosition: this.#scrollPosition,
-      });
-    }
-  };
-
-  #updateDetailsComments = () => {
+  #updateDetails = () => {
     this.#detailsComponent.updateElement({
       ...this.#film,
       comments: this.#comments,
       scrollPosition: this.#scrollPosition,
     });
+
+    this.#detailsComponent.setScrollPosition(this.#scrollPosition);
   };
 
   #handleAddComment = (newComment = {}) => {
     this.#updateScrollPosition();
     this.#changeData(UserActions.ADD_COMMENT, UpdateType.PATCH, newComment);
-    this.#updateDetailsComments();
   };
 
   #handleDeleteComment = (commentInfo = {}) => {
     this.#updateScrollPosition();
     this.#changeData(UserActions.DELETE_COMMENT, UpdateType.PATCH, commentInfo);
-    this.#updateDetailsComments();
   };
 
   #renderDetails = async () => {
@@ -126,6 +111,10 @@ export default class FilmPresenter {
 
   init = (film) => {
     this.#film = film;
+
+    if (this.#MODE === Mode.DETAILS) {
+      this.#updateDetails();
+    }
 
     const prevFilmComponent = this.#filmComponent;
 
