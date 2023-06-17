@@ -1,6 +1,5 @@
 import { Mode, UpdateType, UserActions } from '../const';
 import { remove, render, replace } from '../framework/render';
-import { getCurrentFilmComments } from '../utils/popup';
 import FilmCardView from '../view/film-card-view';
 import DetailsView from '../view/film-details-view';
 
@@ -12,14 +11,16 @@ export default class FilmPresenter {
   #detailsComponent = null;
 
   #changeData = null;
-  #adaptedComments = null;
+  #comments = null;
+  #commentsModel = null;
 
   #scrollPosition = 0;
   #MODE = Mode.DEFAULT;
 
-  constructor({ container, changeData }) {
+  constructor({ container, changeData, commentsModel }) {
     this.#listContainer = container;
     this.#changeData = changeData;
+    this.#commentsModel = commentsModel;
   }
 
   #updateScrollPosition = () => {
@@ -37,8 +38,6 @@ export default class FilmPresenter {
         watchlist: !this.#film.userDetails.watchlist,
       },
     });
-
-    this.#updateDetailsActions();
   };
 
   #handleWatchedClick = () => {
@@ -50,8 +49,6 @@ export default class FilmPresenter {
         alreadyWatched: !this.#film.userDetails.alreadyWatched,
       },
     });
-
-    this.#updateDetailsActions();
   };
 
   #handleFavoriteClick = () => {
@@ -63,45 +60,35 @@ export default class FilmPresenter {
         favorite: !this.#film.userDetails.favorite,
       },
     });
-
-    this.#updateDetailsActions();
   };
 
-  #updateDetailsActions = () => {
-    if (this.#MODE === Mode.DETAILS) {
-      this.#detailsComponent.updateElement({
-        ...this.#film,
-        scrollPosition: this.#scrollPosition,
-      });
-    }
-  };
-
-  #updateDetailsComments = () => {
+  #updateDetails = () => {
     this.#detailsComponent.updateElement({
       ...this.#film,
-      comments: this.#adaptedComments,
+      comments: this.#comments,
       scrollPosition: this.#scrollPosition,
     });
+
+    this.#detailsComponent.setScrollPosition(this.#scrollPosition);
   };
 
   #handleAddComment = (newComment = {}) => {
     this.#updateScrollPosition();
     this.#changeData(UserActions.ADD_COMMENT, UpdateType.PATCH, newComment);
-    this.#updateDetailsComments();
   };
 
   #handleDeleteComment = (commentInfo = {}) => {
     this.#updateScrollPosition();
     this.#changeData(UserActions.DELETE_COMMENT, UpdateType.PATCH, commentInfo);
-    this.#updateDetailsComments();
   };
 
-  #renderDetails = () => {
+  #renderDetails = async () => {
+    this.#comments = await this.#commentsModel.init(this.#film.id);
     this.#MODE = Mode.DETAILS;
 
     this.#detailsComponent = new DetailsView({
       film: this.#film,
-      comments: this.#adaptedComments,
+      comments: this.#comments,
       onCloseClick: this.#removeDetails,
       onKeydown: this.#removeDetails,
       onWatchlistClick: this.#handleWatchlistClick,
@@ -122,9 +109,12 @@ export default class FilmPresenter {
     remove(this.#detailsComponent);
   };
 
-  init = (film, comments) => {
+  init = (film) => {
     this.#film = film;
-    this.#adaptedComments = getCurrentFilmComments(this.#film.commentIds, comments);
+
+    if (this.#MODE === Mode.DETAILS) {
+      this.#updateDetails();
+    }
 
     const prevFilmComponent = this.#filmComponent;
 

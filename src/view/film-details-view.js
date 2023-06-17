@@ -242,13 +242,11 @@ export default class DetailsView extends AbstractStatefulView {
     this.#handleDeleteComment = onDeleteCommentClick;
 
     this.#setInnerHandlers();
-    this.#setScrollPosition();
   }
 
   static convertFilmToState = (info) => ({
     ...info,
     commentInfo: { comment: '', emotion: '' },
-    scrollPosition: 0,
   });
 
   static convertStateToFilm = (state) => {
@@ -278,10 +276,8 @@ export default class DetailsView extends AbstractStatefulView {
 
   getScrollPosition = () => this.element.querySelector('.film-details').scrollTop;
 
-  #setScrollPosition = () => {
+  setScrollPosition = (scrollPosition) => {
     requestAnimationFrame(() => {
-      const { scrollPosition } = this._state;
-
       this.element.querySelector('.film-details').scrollTop = scrollPosition;
     });
   };
@@ -327,7 +323,6 @@ export default class DetailsView extends AbstractStatefulView {
       scrollPosition,
     });
 
-    this.#setScrollPosition();
     this.#markEmojiAsChecked();
   };
 
@@ -350,7 +345,6 @@ export default class DetailsView extends AbstractStatefulView {
 
       this.#resetCommentForm();
       this.#handleAddComment(newComment);
-      this.#setScrollPosition();
     }
   };
 
@@ -365,7 +359,6 @@ export default class DetailsView extends AbstractStatefulView {
     const commentInfo = { commentId: +id, film: filmInfo };
 
     this.#handleDeleteComment(commentInfo);
-    this.#setScrollPosition();
   };
 
   #handleCommentInput = (evt) => {
@@ -377,21 +370,18 @@ export default class DetailsView extends AbstractStatefulView {
   #addToWatchlistClick = (evt) => {
     evt.preventDefault();
     this.#handleWatchlist();
-    this.#setScrollPosition();
     this.#markEmojiAsChecked();
   };
 
   #addToWatchedClick = (evt) => {
     evt.preventDefault();
     this.#handleWatched();
-    this.#setScrollPosition();
     this.#markEmojiAsChecked();
   };
 
   #addToFavoriteClick = (evt) => {
     evt.preventDefault();
     this.#handleFavorite();
-    this.#setScrollPosition();
     this.#markEmojiAsChecked();
   };
 

@@ -7,6 +7,7 @@ import StubView from '../view/stub-view';
 import ShowMoreButtonView from '../view/show-more-button-view';
 import SortView from '../view/sort-view';
 import FilmPresenter from './film-presenter';
+import LoaderView from '../view/loader-view';
 
 const FILM_COUNT_PER_STEP = 5;
 export default class FilmsPresenter {
@@ -20,6 +21,7 @@ export default class FilmsPresenter {
 
   #mainContainer = null;
   #filmsContainerComponent = new FilmsContainerView();
+  #loadingComponent = new LoaderView();
   #sortComponent = null;
   #stubComponent = null;
   #showMoreButtonComponent = null;
@@ -27,6 +29,7 @@ export default class FilmsPresenter {
   #renderedFilmCount = FILM_COUNT_PER_STEP;
   #currentSortType = SortType.DEFAULT;
   #filterType = FilterType.ALL;
+  #isLoading = true;
 
   constructor({ container, filmsModel = {}, filterModel = {}, commentsModel = {} }) {
     this.#filmsModel = filmsModel;
@@ -89,7 +92,7 @@ export default class FilmsPresenter {
           return;
         }
 
-        this.#filmPresenter.get(data.id).init(data, this.comments);
+        this.#filmPresenter.get(data.id).init(data);
         break;
 
       case UpdateType.MINOR:
@@ -99,6 +102,13 @@ export default class FilmsPresenter {
         this.#clearFilmList();
         this.#renderFilmList();
         break;
+      case UpdateType.INIT:
+        if (this.#isLoading) {
+          this.#isLoading = false;
+          remove(this.#loadingComponent);
+        }
+
+        this.#renderFilmList();
     }
   };
 
@@ -126,10 +136,11 @@ export default class FilmsPresenter {
     const filmPresenter = new FilmPresenter({
       container,
       changeData: this.#handleViewAction,
+      commentsModel: this.#commentsModel,
     });
 
     this.#filmPresenter.set(film.id, filmPresenter);
-    filmPresenter.init(film, this.comments);
+    filmPresenter.init(film);
   };
 
   #renderFilms = (films) => {
@@ -188,8 +199,10 @@ export default class FilmsPresenter {
     this.#filmList = this.#filmsContainerComponent.element.querySelector('.films-list');
     this.#filmListContainer = this.#filmsContainerComponent.element.querySelector('.films-list__container');
 
-    render(this.#filmsContainerComponent, this.#mainContainer);
+    if (this.#isLoading) {
+      render(this.#loadingComponent, this.#filmList);
+    }
 
-    this.#renderFilmList();
+    render(this.#filmsContainerComponent, this.#mainContainer);
   };
 }
