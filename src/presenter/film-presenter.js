@@ -62,7 +62,9 @@ export default class FilmPresenter {
     });
   };
 
-  #updateDetails = () => {
+  #updateDetails = async () => {
+    this.#comments = await this.#commentsModel.init(this.#film.id);
+
     this.#detailsComponent.updateElement({
       ...this.#film,
       comments: this.#comments,
@@ -70,6 +72,7 @@ export default class FilmPresenter {
     });
 
     this.#detailsComponent.setScrollPosition(this.#scrollPosition);
+    this.#detailsComponent.markEmojiAsChecked();
   };
 
   #handleAddComment = (newComment = {}) => {

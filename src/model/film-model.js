@@ -85,37 +85,25 @@ export default class FilmsModel extends Observable {
     }
   };
 
-  addComment = (updateType, update) => {
-    const { film: currentFilm, comment } = update;
-    const filmIndex = this.films.findIndex((film) => String(film.id) === String(currentFilm.id));
-
-    if (filmIndex !== -1) {
-      const targetFilm = this.films[filmIndex];
-      const updatedFilm = {
-        ...targetFilm,
-        commentIds: [...targetFilm.commentIds, String(comment.id)],
-      };
-
-      this.films[filmIndex] = updatedFilm;
-
-      this._notify(updateType, updatedFilm);
-    }
-  };
-
   removeComment = (updateType, update) => {
     const { film: currentFilm, commentId } = update;
     const filmIndex = this.films.findIndex((film) => String(film.id) === String(currentFilm.id));
 
-    if (filmIndex !== -1) {
+    if (filmIndex === -1) {
+      throw new Error('Cant delete unexisted comment');
+    }
+
+    try {
       const targetFilm = this.films[filmIndex];
       const updatedFilm = {
         ...targetFilm,
         commentIds: targetFilm.commentIds.filter((id) => String(id) !== String(commentId)),
       };
-
       this.films[filmIndex] = updatedFilm;
 
       this._notify(updateType, updatedFilm);
+    } catch (error) {
+      throw new Error('Cant delete comment');
     }
   };
 }

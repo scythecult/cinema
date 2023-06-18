@@ -209,8 +209,6 @@ const createPopupTemplate = ({ film = {} } = {}) => {
   `;
 };
 
-let commentId = 101;
-
 export default class DetailsView extends AbstractStatefulView {
   #handleCloseClick = null;
   #handleKeydown = null;
@@ -254,6 +252,7 @@ export default class DetailsView extends AbstractStatefulView {
 
     delete info.comments;
     delete info.commentInfo;
+    delete info.scrollPosition;
 
     return info;
   };
@@ -296,7 +295,7 @@ export default class DetailsView extends AbstractStatefulView {
       .addEventListener('click', this.#handleCommentDeleteClick);
   };
 
-  #markEmojiAsChecked = () => {
+  markEmojiAsChecked = () => {
     const { emotion } = this._state.commentInfo;
 
     if (!emotion) {
@@ -320,10 +319,10 @@ export default class DetailsView extends AbstractStatefulView {
 
     this.updateElement({
       commentInfo: { ...this._state.commentInfo, emotion: currentInput.value },
-      scrollPosition,
     });
 
-    this.#markEmojiAsChecked();
+    this.setScrollPosition(scrollPosition);
+    this.markEmojiAsChecked();
   };
 
   #resetCommentForm = () => {
@@ -332,7 +331,6 @@ export default class DetailsView extends AbstractStatefulView {
 
   #handleCommentSubmit = (evt) => {
     if (evt.code === 'Enter' && (evt.ctrlKey || evt.metaKey)) {
-      const currentId = commentId++;
       const { commentInfo } = this._state;
 
       if (!commentInfo.comment || !commentInfo.emotion) {
@@ -340,8 +338,7 @@ export default class DetailsView extends AbstractStatefulView {
       }
 
       const filmInfo = DetailsView.convertStateToFilm(this._state);
-      const updatedFilmInfo = { ...filmInfo, commentIds: [...filmInfo.commentIds, currentId] };
-      const newComment = { comment: { ...this._state.commentInfo, id: currentId }, film: updatedFilmInfo };
+      const newComment = { comment: { ...this._state.commentInfo }, film: filmInfo };
 
       this.#resetCommentForm();
       this.#handleAddComment(newComment);
@@ -356,7 +353,7 @@ export default class DetailsView extends AbstractStatefulView {
     }
     const { id } = deleteElement.dataset;
     const filmInfo = DetailsView.convertStateToFilm(this._state);
-    const commentInfo = { commentId: +id, film: filmInfo };
+    const commentInfo = { commentId: id, film: filmInfo };
 
     this.#handleDeleteComment(commentInfo);
   };
@@ -370,19 +367,19 @@ export default class DetailsView extends AbstractStatefulView {
   #addToWatchlistClick = (evt) => {
     evt.preventDefault();
     this.#handleWatchlist();
-    this.#markEmojiAsChecked();
+    this.markEmojiAsChecked();
   };
 
   #addToWatchedClick = (evt) => {
     evt.preventDefault();
     this.#handleWatched();
-    this.#markEmojiAsChecked();
+    this.markEmojiAsChecked();
   };
 
   #addToFavoriteClick = (evt) => {
     evt.preventDefault();
     this.#handleFavorite();
-    this.#markEmojiAsChecked();
+    this.markEmojiAsChecked();
   };
 
   #keydownHandler = (evt) => {
