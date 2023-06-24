@@ -8,8 +8,13 @@ import ShowMoreButtonView from '../view/show-more-button-view';
 import SortView from '../view/sort-view';
 import FilmPresenter from './film-presenter';
 import LoaderView from '../view/loader-view';
+import UiBlocker from '../framework/ul-blocker/ui-blocker';
 
 const FILM_COUNT_PER_STEP = 5;
+const TimeLimit = {
+  LOWER_LIMIT: 350,
+  UPPER_LIMIT: 1000,
+};
 export default class FilmsPresenter {
   #filmsModel = null;
   #filterModel = null;
@@ -25,6 +30,7 @@ export default class FilmsPresenter {
   #sortComponent = null;
   #stubComponent = null;
   #showMoreButtonComponent = null;
+  #uiBlocker = new UiBlocker(TimeLimit.LOWER_LIMIT, TimeLimit.UPPER_LIMIT);
 
   #renderedFilmCount = FILM_COUNT_PER_STEP;
   #currentSortType = SortType.DEFAULT;
@@ -68,6 +74,8 @@ export default class FilmsPresenter {
   };
 
   #handleViewAction = async (actionType, updateType, update) => {
+    this.#uiBlocker.block();
+
     switch (actionType) {
       case UserActions.UPDATE:
         try {
@@ -100,6 +108,8 @@ export default class FilmsPresenter {
         }
         break;
     }
+
+    this.#uiBlocker.unblock();
   };
 
   #handleModelEvent = (updateType, data) => {
