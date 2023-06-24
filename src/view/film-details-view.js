@@ -103,8 +103,11 @@ const createCommentTemplate = (props = {}) => {
     comment = 'Interesting setting and a good cast',
     author = 'Tim Macoveev',
     date = '2019/12/31 23:59',
+    isDeleting,
   } = props;
   const formattedDate = formatDate(date);
+  const disabled = isDeleting ? 'disabled' : '';
+  const statusText = isDeleting ? 'Deleting...' : 'Delete';
 
   return `<li class="film-details__comment" >
 <span class="film-details__comment-emoji">
@@ -115,7 +118,7 @@ const createCommentTemplate = (props = {}) => {
   <p class="film-details__comment-info">
     <span class="film-details__comment-author">${author}</span>
     <span class="film-details__comment-day">${formattedDate}</span>
-    <button class="film-details__comment-delete" data-id=${id}>Delete</button>
+    <button class="film-details__comment-delete" ${disabled} data-id=${id}>${statusText}</button>
   </p>
 </div>
 </li>`;
@@ -134,7 +137,7 @@ const createCommentEmojiTemplate = () =>
 const createIconEmojiTemplate = (emotion = 'smile') =>
   `<img src="images/emoji/${emotion}.png" width="55" height="55" alt="emoji-smile">`;
 
-const createNewCommentFormTemplate = ({ comment = '', emotion = 'smile' }) => {
+const createNewCommentFormTemplate = ({ comment = '', emotion = 'smile', isDisabled }) => {
   const emotionsTemplate = createCommentEmojiTemplate();
   const emojiIconTemplate = emotion ? createIconEmojiTemplate(emotion) : '';
 
@@ -149,6 +152,7 @@ const createNewCommentFormTemplate = ({ comment = '', emotion = 'smile' }) => {
     <textarea class="film-details__comment-input"
      placeholder="Select reaction below and write comment here"
      name="comment"
+     ${isDisabled ? 'disabled' : ''}
      value='${comment}'>${comment}</textarea>
   </label>
 
@@ -158,9 +162,13 @@ const createNewCommentFormTemplate = ({ comment = '', emotion = 'smile' }) => {
   </div>`;
 };
 
-const createCommentsTemplate = ({ comments = [], comment = '', emotion = 'smile' }) => {
-  const commentsTemplate = comments.map(createCommentTemplate);
-  const newCommentFormView = createNewCommentFormTemplate({ comment, emotion });
+const createCommentsTemplate = ({ comments = [], comment = '', emotion = 'smile', deletingCommentId, isDisabled }) => {
+  const commentsTemplate = comments.map((currentComment) => {
+    const isDeleting = currentComment.id === deletingCommentId;
+
+    return createCommentTemplate({ ...currentComment, isDeleting });
+  });
+  const newCommentFormView = createNewCommentFormTemplate({ comment, emotion, isDisabled });
   const commentsCount = comments.length;
 
   return `
@@ -180,11 +188,20 @@ const createPopupTemplate = ({ film = {} } = {}) => {
     filmInfo,
     userDetails,
     commentInfo: { comment, emotion },
+    deletingCommentId,
+    isDisabled,
   } = film;
+
   const dropdownTemplate = createDropdownTemplate();
   const filmDetailsTemplate = createFilmDetailsTemplate(filmInfo);
   const filmDetailsControlsTemplate = createFilmDetailsControlsTemplate(userDetails);
-  const commentsTemplate = createCommentsTemplate({ comments, comment, emotion });
+  const commentsTemplate = createCommentsTemplate({
+    deletingCommentId,
+    isDisabled,
+    comments,
+    comment,
+    emotion,
+  });
 
   return `
   <div>
@@ -245,6 +262,8 @@ export default class DetailsView extends AbstractStatefulView {
   static convertFilmToState = (info) => ({
     ...info,
     commentInfo: { comment: '', emotion: '' },
+    deletingCommentId: '0',
+    isDisabled: false,
   });
 
   static convertStateToFilm = (state) => {
@@ -252,7 +271,8 @@ export default class DetailsView extends AbstractStatefulView {
 
     delete info.comments;
     delete info.commentInfo;
-    delete info.scrollPosition;
+    delete info.deletingCommentId;
+    delete info.isDisabled;
 
     return info;
   };

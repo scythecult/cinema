@@ -13,7 +13,7 @@ export default class CommentsModel extends Observable {
     return this.#comments;
   }
 
-  init = async (filmId) => {
+  getComments = async (filmId) => {
     try {
       this.#comments = await this.#apiService.getComments(filmId);
     } catch (error) {
@@ -50,6 +50,9 @@ export default class CommentsModel extends Observable {
 
     try {
       await this.#apiService.deleteComment(commentId);
+
+      this.#comments = [...this.#comments.slice(0, commentIndex), ...this.#comments.slice(commentIndex + 1)];
+
       this._notify(updateType, currentFilm);
     } catch (error) {
       throw new Error('Cant delete comment');

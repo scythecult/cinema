@@ -62,13 +62,12 @@ export default class FilmPresenter {
     });
   };
 
-  #updateDetails = async () => {
-    this.#comments = await this.#commentsModel.init(this.#film.id);
+  #updateDetails = () => {
+    this.#comments = this.#commentsModel.comments;
 
     this.#detailsComponent.updateElement({
       ...this.#film,
       comments: this.#comments,
-      scrollPosition: this.#scrollPosition,
     });
 
     this.#detailsComponent.setScrollPosition(this.#scrollPosition);
@@ -86,7 +85,7 @@ export default class FilmPresenter {
   };
 
   #renderDetails = async () => {
-    this.#comments = await this.#commentsModel.init(this.#film.id);
+    this.#comments = await this.#commentsModel.getComments(this.#film.id);
     this.#MODE = Mode.DETAILS;
 
     this.#detailsComponent = new DetailsView({
@@ -110,6 +109,37 @@ export default class FilmPresenter {
 
     this.#detailsComponent.removeOverflow();
     remove(this.#detailsComponent);
+  };
+
+  setAdding = () => {
+    if (this.#MODE === Mode.DETAILS) {
+      this.#detailsComponent.updateElement({
+        isDisabled: true,
+      });
+
+      this.#detailsComponent.setScrollPosition(this.#scrollPosition);
+    }
+  };
+
+  setDefault = () => {
+    if (this.#MODE === Mode.DETAILS) {
+      this.#detailsComponent.updateElement({
+        isDisabled: false,
+        deletingCommentId: null,
+      });
+
+      this.#detailsComponent.setScrollPosition(this.#scrollPosition);
+    }
+  };
+
+  setDeleting = (commentId) => {
+    if (this.#MODE === Mode.DETAILS) {
+      this.#detailsComponent.updateElement({
+        deletingCommentId: commentId,
+      });
+
+      this.#detailsComponent.setScrollPosition(this.#scrollPosition);
+    }
   };
 
   init = (film) => {

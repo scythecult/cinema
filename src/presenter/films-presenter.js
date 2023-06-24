@@ -67,18 +67,37 @@ export default class FilmsPresenter {
     return filter[this.#filterType](films);
   };
 
-  #handleViewAction = (actionType, updateType, update) => {
+  #handleViewAction = async (actionType, updateType, update) => {
     switch (actionType) {
       case UserActions.UPDATE:
-        this.#filmsModel.update(updateType, update);
+        try {
+          await this.#filmsModel.update(updateType, update);
+        } catch (error) {
+          this.#filmPresenter.get(update.id).setDefault();
+        }
         break;
       case UserActions.ADD_COMMENT:
-        this.#commentsModel.addComment(updateType, update);
+        this.#filmPresenter.get(update.film.id).setAdding();
+
+        try {
+          await this.#commentsModel.addComment(updateType, update).then(() => {
+            this.#filmPresenter.get(update.film.id).setDefault();
+          });
+        } catch (error) {
+          this.#filmPresenter.get(update.film.id).setDefault();
+        }
+
         break;
       case UserActions.DELETE_COMMENT:
-        this.#commentsModel.removeComment(updateType, update).then(() => {
-          this.#filmsModel.removeComment(updateType, update);
-        });
+        this.#filmPresenter.get(update.film.id).setDeleting(update.commentId);
+
+        try {
+          await this.#commentsModel.removeComment(updateType, update).then(() => {
+            this.#filmsModel.removeComment(updateType, update);
+          });
+        } catch (error) {
+          this.#filmPresenter.get(update.film.id).setDefault();
+        }
         break;
     }
   };
