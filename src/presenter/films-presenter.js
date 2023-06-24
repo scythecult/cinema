@@ -11,6 +11,7 @@ import LoaderView from '../view/loader-view';
 import UiBlocker from '../framework/ul-blocker/ui-blocker';
 
 const FILM_COUNT_PER_STEP = 5;
+const MAX_COMMENTED_FILMS_COUNT = 2;
 const TimeLimit = {
   LOWER_LIMIT: 350,
   UPPER_LIMIT: 1000,
@@ -64,6 +65,18 @@ export default class FilmsPresenter {
     }
 
     return filteredFilms;
+  }
+
+  get mostCommentedFilms() {
+    const films = [...this.#filmsModel.films];
+
+    return films.sort((a, b) => b.commentIds.length - a.commentIds.length).slice(0, MAX_COMMENTED_FILMS_COUNT);
+  }
+
+  get topRatedFilms() {
+    const films = [...this.#filmsModel.films];
+
+    return films.sort((a, b) => b.filmInfo.totalRating - a.filmInfo.totalRating).slice(0, MAX_COMMENTED_FILMS_COUNT);
   }
 
   #getFilteredFilms = () => {
@@ -123,6 +136,7 @@ export default class FilmsPresenter {
         }
 
         this.#filmPresenter.get(data.id).init(data);
+        // updateMostCommentedFilms
         break;
 
       case UpdateType.MINOR:
@@ -139,6 +153,9 @@ export default class FilmsPresenter {
         }
 
         this.#renderFilmList();
+        // eslint-disable-next-line no-console
+        console.log(this.mostCommentedFilms, this.topRatedFilms);
+      // renderExtraFilms
     }
   };
 
