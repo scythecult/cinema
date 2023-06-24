@@ -1,6 +1,6 @@
 import { EMOTIONS } from '../const';
 import AbstractStatefulView from '../framework/view/abstract-stateful-view';
-import { formatDate, humanizeReleaseDate } from '../utils/film';
+import { humanizeCommentDate, humanizeDate } from '../utils/film';
 
 const createDropdownTemplate = () => '<div class="dropdown"></div>';
 
@@ -20,7 +20,7 @@ const createFilmDetailsTemplate = (props = {}) => {
     release: { date, releaseCountry },
   } = props;
 
-  const releaseDate = humanizeReleaseDate(date);
+  const releaseDate = humanizeDate(date);
   const genreElements = genres.map((genre) => `<span class="film-details__genre">${genre}</span>`);
 
   return `<div class="film-details__info-wrap">
@@ -105,7 +105,7 @@ const createCommentTemplate = (props = {}) => {
     date = '2019/12/31 23:59',
     isDeleting,
   } = props;
-  const formattedDate = formatDate(date);
+  const formattedDate = humanizeCommentDate(date);
   const disabled = isDeleting ? 'disabled' : '';
   const statusText = isDeleting ? 'Deleting...' : 'Delete';
 
