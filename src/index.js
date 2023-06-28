@@ -32,5 +32,8 @@ const statsPresenter = new StatsPresenter({ container: footerContainer });
 profilePresenter.init();
 filterPresenter.init();
 filmsPresenter.init();
-statsPresenter.init();
-filmsModel.init();
+filmsModel.init().then(() => {
+  const filmsCount = filmsModel.films.length;
+
+  statsPresenter.init(filmsCount);
+});
