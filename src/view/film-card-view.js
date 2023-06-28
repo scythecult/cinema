@@ -1,5 +1,5 @@
 import AbstractView from '../framework/view/abstract-view';
-import { formatDate, formatDuration } from '../utils/film';
+import { formatDate, formatDuration, truncate } from '../utils/film';
 
 const createFilmCardTemplate = (props = {}) => {
   const {
@@ -20,6 +20,7 @@ const createFilmCardTemplate = (props = {}) => {
   const genres = genre.join(', ');
   const duration = formatDuration(runtime);
   const releaseYear = formatDate(date);
+  const truncatedDescr = truncate(description);
 
   return `<article class="film-card" data-film-id='${id}'>
   <a class="film-card__link">
@@ -31,7 +32,7 @@ const createFilmCardTemplate = (props = {}) => {
       <span class="film-card__genre">${genres}</span>
     </p>
     <img src="${poster}" alt="${title}" class="film-card__poster">
-    <p class="film-card__description">${description}</p>
+    <p class="film-card__description">${truncatedDescr}</p>
     <span class="film-card__comments">${commentIds?.length} comments</span>
   </a>
   <div class="film-card__controls">

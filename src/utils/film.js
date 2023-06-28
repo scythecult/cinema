@@ -23,6 +23,9 @@ const humanizeCommentDate = (rawDate = '') => {
   return dayjs().from(currentTime);
 };
 
+const truncate = (description = '', limit = 140) =>
+  description.length > limit ? `${description.slice(0, limit - 1)}…` : description;
+
 const formatDate = (rawDate) => new Date(rawDate).getFullYear();
 
 const filterByWatched = (films) => films.filter((film) => film.userDetails.alreadyWatched);
@@ -43,4 +46,5 @@ export {
   sortByReleaseDate,
   sortByCommentCount,
   filterByWatched,
+  truncate,
 };
