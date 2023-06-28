@@ -25,6 +25,8 @@ const humanizeCommentDate = (rawDate = '') => {
 
 const formatDate = (rawDate) => new Date(rawDate).getFullYear();
 
+const filterByWatched = (films) => films.filter((film) => film.userDetails.alreadyWatched);
+
 const sortByRating = (filmA = {}, filmB = {}) => filmB.filmInfo.totalRating - filmA.filmInfo.totalRating;
 
 const sortByCommentCount = (filmA = {}, filmB = {}) => filmB.commentIds.length - filmA.commentIds.length;
@@ -40,4 +42,5 @@ export {
   sortByRating,
   sortByReleaseDate,
   sortByCommentCount,
+  filterByWatched,
 };

@@ -1,6 +1,6 @@
 import { FilterType, SortType, UpdateType, UserActions } from '../const';
-import { remove, render, RenderPosition } from '../framework/render';
-import { sortByCommentCount, sortByRating, sortByReleaseDate } from '../utils/film';
+import { remove, render, RenderPosition, replace } from '../framework/render';
+import { filterByWatched, sortByCommentCount, sortByRating, sortByReleaseDate } from '../utils/film';
 import { filter } from '../utils/filter';
 import FilmsContainerView from '../view/films-container-view';
 import StubView from '../view/stub-view';
@@ -11,6 +11,7 @@ import LoaderView from '../view/loader-view';
 import UiBlocker from '../framework/ul-blocker/ui-blocker';
 import FilmsExtraView from '../view/films-extra-view';
 import StatsView from '../view/stats-view';
+import ProfileView from '../view/profile-view';
 
 const FILM_COUNT_PER_STEP = 5;
 const MAX_EXTRA_FILMS_COUNT = 2;
@@ -32,9 +33,10 @@ export default class FilmsPresenter {
   #filmList = null;
   #filmListContainer = null;
 
-  #profileContainer = null;
   #mainContainer = null;
+  #profileContainer = null;
   #footerContainer = null;
+  #profileComponent = null;
   #filmsContainerComponent = new FilmsContainerView();
   #loadingComponent = new LoaderView();
   #sortComponent = null;
@@ -85,6 +87,10 @@ export default class FilmsPresenter {
     }
 
     return filteredFilms;
+  }
+
+  get alreadyWatchedFilms() {
+    return filterByWatched(this.#filmsModel.films);
   }
 
   get mostCommentedFilms() {
@@ -153,12 +159,11 @@ export default class FilmsPresenter {
         if (FilterType.ALL !== this.#filterModel.filter) {
           this.#clearFilmList();
           this.#renderFilmList();
-
-          return;
         }
 
         this.#filmPresenter.get(data.id)?.init(data);
         this.#extraFilmPresenter.get(data.id)?.init(data);
+        this.#renderProfile();
         break;
 
       case UpdateType.MINOR:
@@ -174,6 +179,7 @@ export default class FilmsPresenter {
           remove(this.#loadingComponent);
         }
 
+        this.#renderProfile();
         this.#renderFilmList();
         this.#renderStats(this.films.length);
     }
@@ -201,6 +207,28 @@ export default class FilmsPresenter {
 
   #renderStats = (filmsCount) => {
     render(new StatsView(filmsCount), this.#footerContainer);
+  };
+
+  #renderProfile = () => {
+    const alreadyWatchedFilmsCount = this.alreadyWatchedFilms.length;
+
+    if (!alreadyWatchedFilmsCount) {
+      remove(this.#profileComponent);
+      this.#profileComponent = null;
+      return;
+    }
+
+    const prevProfileComponent = this.#profileComponent;
+    this.#profileComponent = new ProfileView(alreadyWatchedFilmsCount);
+
+    if (prevProfileComponent === null) {
+      render(this.#profileComponent, this.#profileContainer);
+
+      return;
+    }
+
+    replace(this.#profileComponent, prevProfileComponent);
+    remove(prevProfileComponent);
   };
 
   #removeExtraFilms = () => {
