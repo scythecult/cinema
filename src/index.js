@@ -1,7 +1,6 @@
 import FilmsModel from './model/film-model';
 import FilmsPresenter from './presenter/films-presenter';
 import ProfilePresenter from './presenter/profile-presenter';
-import StatsPresenter from './presenter/stats-presenter';
 import CommentsModel from './model/comments-model';
 import FilterModel from './model/filter-model';
 import FiltersPresenter from './presenter/filter-presenter';
@@ -26,14 +25,16 @@ const commentsModel = new CommentsModel(filmApiService);
 // presenters
 const profilePresenter = new ProfilePresenter({ container: profileContainer });
 const filterPresenter = new FiltersPresenter({ container: mainContainer, filterModel, filmsModel });
-const filmsPresenter = new FilmsPresenter({ container: mainContainer, filmsModel, commentsModel, filterModel });
-const statsPresenter = new StatsPresenter({ container: footerContainer });
+const filmsPresenter = new FilmsPresenter({
+  profileContainer,
+  filmContainer: mainContainer,
+  footerContainer,
+  filmsModel,
+  commentsModel,
+  filterModel,
+});
 
 profilePresenter.init();
 filterPresenter.init();
 filmsPresenter.init();
-filmsModel.init().then(() => {
-  const filmsCount = filmsModel.films.length;
-
-  statsPresenter.init(filmsCount);
-});
+filmsModel.init();

@@ -10,6 +10,7 @@ import FilmPresenter from './film-presenter';
 import LoaderView from '../view/loader-view';
 import UiBlocker from '../framework/ul-blocker/ui-blocker';
 import FilmsExtraView from '../view/films-extra-view';
+import StatsView from '../view/stats-view';
 
 const FILM_COUNT_PER_STEP = 5;
 const MAX_EXTRA_FILMS_COUNT = 2;
@@ -31,7 +32,9 @@ export default class FilmsPresenter {
   #filmList = null;
   #filmListContainer = null;
 
+  #profileContainer = null;
   #mainContainer = null;
+  #footerContainer = null;
   #filmsContainerComponent = new FilmsContainerView();
   #loadingComponent = new LoaderView();
   #sortComponent = null;
@@ -46,12 +49,21 @@ export default class FilmsPresenter {
   #filterType = FilterType.ALL;
   #isLoading = true;
 
-  constructor({ container, filmsModel = {}, filterModel = {}, commentsModel = {} }) {
+  constructor({
+    profileContainer,
+    filmContainer,
+    footerContainer,
+    filmsModel = {},
+    filterModel = {},
+    commentsModel = {},
+  }) {
     this.#filmsModel = filmsModel;
     this.#commentsModel = commentsModel;
     this.#filterModel = filterModel;
 
-    this.#mainContainer = container;
+    this.#profileContainer = profileContainer;
+    this.#mainContainer = filmContainer;
+    this.#footerContainer = footerContainer;
 
     this.#filmsModel.addObserver(this.#handleModelEvent);
     this.#filterModel.addObserver(this.#handleModelEvent);
@@ -163,6 +175,7 @@ export default class FilmsPresenter {
         }
 
         this.#renderFilmList();
+        this.#renderStats(this.films.length);
     }
   };
 
@@ -184,6 +197,10 @@ export default class FilmsPresenter {
     });
 
     render(this.#sortComponent, this.#filmsContainerComponent.element, RenderPosition.BEFOREBEGIN);
+  };
+
+  #renderStats = (filmsCount) => {
+    render(new StatsView(filmsCount), this.#footerContainer);
   };
 
   #removeExtraFilms = () => {
