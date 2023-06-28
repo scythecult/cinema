@@ -171,6 +171,9 @@ export default class FilmPresenter {
 
   destroy = () => {
     remove(this.#filmComponent);
-    remove(this.#detailsComponent);
+
+    if (this.#MODE === Mode.DETAILS) {
+      remove(this.#detailsComponent);
+    }
   };
 }

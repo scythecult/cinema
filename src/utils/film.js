@@ -27,7 +27,17 @@ const formatDate = (rawDate) => new Date(rawDate).getFullYear();
 
 const sortByRating = (filmA = {}, filmB = {}) => filmB.filmInfo.totalRating - filmA.filmInfo.totalRating;
 
+const sortByCommentCount = (filmA = {}, filmB = {}) => filmB.commentIds.length - filmA.commentIds.length;
+
 const sortByReleaseDate = (filmA = {}, filmB = {}) =>
   dayjs(filmB.filmInfo.release.date) - dayjs(filmA.filmInfo.release.date);
 
-export { humanizeDate, humanizeCommentDate, formatDate, formatDuration, sortByRating, sortByReleaseDate };
+export {
+  humanizeDate,
+  humanizeCommentDate,
+  formatDate,
+  formatDuration,
+  sortByRating,
+  sortByReleaseDate,
+  sortByCommentCount,
+};
