@@ -1,6 +1,6 @@
 import { EMOTIONS } from '../const';
 import AbstractStatefulView from '../framework/view/abstract-stateful-view';
-import { formatDate, humanizeReleaseDate } from '../utils/film';
+import { humanizeCommentDate, humanizeDate } from '../utils/film';
 
 const createDropdownTemplate = () => '<div class="dropdown"></div>';
 
@@ -14,14 +14,15 @@ const createFilmDetailsTemplate = (props = {}) => {
     writers = ['Anne Wigton', 'Heinz Herald', 'Richard Weil'],
     actors = ['Erich von Stroheim', 'Mary Beth Hughes', 'Dan Duryea'],
     duration = '1h 18m',
-    genres = ['Drama', 'Film-Noir', 'Mystery'],
+    genre = ['Drama', 'Film-Noir', 'Mystery'],
     description = 'The film opens following a murder at a cabaret in Mexico City in 1936, and then presents the events leading up to it in flashback. The Great Flamarion (Erich von Stroheim) is an arrogant, friendless, and misogynous marksman who displays his trick gunshot act in the vaudeville circuit. His show features a beautiful assistant, Connie (Mary Beth Hughes) and her drunken husband Al (Dan Duryea), Flamarions other assistant. Flamarion falls in love with Connie, the movies femme fatale, and is soon manipulated by her into killing her no good husband during one of their acts.',
     age = '18+',
     release: { date, releaseCountry },
   } = props;
 
-  const releaseDate = humanizeReleaseDate(date);
-  const genreElements = genres.map((genre) => `<span class="film-details__genre">${genre}</span>`);
+  const releaseDate = humanizeDate(date);
+  const genreElements = genre.map((genreItem) => `<span class="film-details__genre">${genreItem}</span>`);
+  const genresText = genreElements.length > 1 ? 'Genres' : 'Genre';
 
   return `<div class="film-details__info-wrap">
 <div class="film-details__poster">
@@ -68,7 +69,7 @@ const createFilmDetailsTemplate = (props = {}) => {
       <td class="film-details__cell">${releaseCountry}</td>
     </tr>
     <tr class="film-details__row">
-      <td class="film-details__term">Genres</td>
+      <td class="film-details__term">${genresText}</td>
       <td class="film-details__cell">
         ${genreElements.join('\n')}
         </td>
@@ -105,7 +106,7 @@ const createCommentTemplate = (props = {}) => {
     date = '2019/12/31 23:59',
     isDeleting,
   } = props;
-  const formattedDate = formatDate(date);
+  const formattedDate = humanizeCommentDate(date);
   const disabled = isDeleting ? 'disabled' : '';
   const statusText = isDeleting ? 'Deleting...' : 'Delete';
 

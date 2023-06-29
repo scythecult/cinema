@@ -1,4 +1,7 @@
 import dayjs from 'dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime';
+
+dayjs.extend(relativeTime);
 
 const formatDuration = (rawTime) => {
   const SECONDS = rawTime * 60;
@@ -11,12 +14,37 @@ const formatDuration = (rawTime) => {
   return `${hours} ${minutes}`;
 };
 
-const humanizeReleaseDate = (rawDate = '') => dayjs(rawDate).format('DD MMMM YYYY');
+const humanizeDate = (rawDate = '', format = 'DD MMMM YYYY') => dayjs(rawDate).format(format);
+
+const humanizeCommentDate = (rawDate = '') => {
+  const format = 'YYYY/MM/DD HH:MM';
+  const currentTime = humanizeDate(rawDate, format);
+
+  return dayjs().from(currentTime);
+};
+
+const truncate = (description = '', limit = 140) =>
+  description.length > limit ? `${description.slice(0, limit - 1)}…` : description;
 
 const formatDate = (rawDate) => new Date(rawDate).getFullYear();
 
+const filterByWatched = (films) => films.filter((film) => film.userDetails.alreadyWatched);
+
 const sortByRating = (filmA = {}, filmB = {}) => filmB.filmInfo.totalRating - filmA.filmInfo.totalRating;
 
-const sortByReleaseDate = (filmA = {}, filmB = {}) => dayjs(filmB.filmInfo.release.date) - dayjs(filmA.filmInfo.release.date);
+const sortByCommentCount = (filmA = {}, filmB = {}) => filmB.commentIds.length - filmA.commentIds.length;
 
-export { humanizeReleaseDate, formatDate, formatDuration, sortByRating, sortByReleaseDate };
+const sortByReleaseDate = (filmA = {}, filmB = {}) =>
+  dayjs(filmB.filmInfo.release.date) - dayjs(filmA.filmInfo.release.date);
+
+export {
+  humanizeDate,
+  humanizeCommentDate,
+  formatDate,
+  formatDuration,
+  sortByRating,
+  sortByReleaseDate,
+  sortByCommentCount,
+  filterByWatched,
+  truncate,
+};
